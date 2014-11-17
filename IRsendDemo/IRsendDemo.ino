@@ -15,19 +15,29 @@ IRsend irsend;
 void setup()
 {
   Serial.begin(9600);
+  //IR Demo send a cmd To Mitsubishi HVAC
+ Serial.println("IR Demo send a cmd To Mitsubishi HVAC");
+ Serial.println("Please any data to the Serial Interface in order to start the Demo");
+ Serial.println("");
 }
 
 void loop() {
   
-  byte data[18] = { 0x23, 0xCB, 0x26, 0x01, 0x00, 0x20, 0x08, 0x06, 0x30, 0x45, 0x67, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1F };
-
-  //Serial.println("Enter cmd to send.");
   if (Serial.read() != -1) {
-    for (int i = 0; i < 3; i++) {
-      //irsend.sendSony(0xa90, 12); // Sony TV power code
-      irsend.sendHvacMitsubishi();
-      Serial.println("Command sent");
-      delay(4000);
-    }
+      Serial.println("Waiting 5 Seconds to send ON command.");
+      delay(5000);
+      irsend.sendHvacMitsubishi(HVAC_HOT, 23, FAN_SPEED_1, VANNE_AUTO_MOVE, false);
+      Serial.println("Command 'HVAC_HOT, 23, FAN_SPEED_1, VANNE_AUTO_MOVE' sent.\n Waiting 60 Seconds to switch to FAN_SPEED_4.");
+      delay(60000);
+      irsend.sendHvacMitsubishi(HVAC_HOT, 25, FAN_SPEED_4, VANNE_H1, false);
+      Serial.println("Command 'HVAC_HOT, 25, FAN_SPEED_4, VANNE_H1' sent. \n Waiting 30 Seconds to Send FAN_SPEED_SILENT, VANNE_H1.");
+      delay(30000);
+      irsend.sendHvacMitsubishi(HVAC_HOT, 22, FAN_SPEED_SILENT, VANNE_AUTO_MOVE, false);
+      Serial.println("Command 'HVAC_HOT, 22, FAN_SPEED_SILENT, VANNE_AUTO_MOVE' sent.\n Waiting 30 Seconds to send OFF.");
+      delay(30000);
+      irsend.sendHvacMitsubishi(HVAC_HOT, 21, FAN_SPEED_AUTO, VANNE_AUTO_MOVE, true);
+      Serial.println("Command sent. End Of Sketch");
+      delay(15000); // Let HVAC sleeping
+
   }
 }

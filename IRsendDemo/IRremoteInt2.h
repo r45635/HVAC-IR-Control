@@ -11,6 +11,9 @@
  * Also influenced by http://zovirl.com/2008/11/12/building-a-universal-remote-with-an-arduino/
  *
  * JVC and Panasonic protocol added by Kristian Lauszus (Thanks to zenwheel and other people at the original blog post)
+ *
+ * Mitsubishi HVAC protocol added by Vincent Cruvellier.
+ *
  */
 
 #ifndef IRremoteint_h
@@ -132,6 +135,7 @@
 #define HVAC_MITSUBISHI_RPT_SPACE   17100
 #define HVAC_MITSUBISHI_HDR2_MARK    3550
 #define HVAC_MITSUBISHI_HDR2_SPACE   1720
+
 
 
 //#define MITSUBISHI_ZERO_MARK  750 // 17*50-100
