@@ -138,11 +138,11 @@ class IRsend
     void sendSharpRaw(unsigned long data, int nbits);
     void sendPanasonic(unsigned int address, unsigned long data);
     void sendHvacMitsubishi(
-      HvacMitsubishiMode       HVAC_Mode,           // Example HVAC_HOT  HvacMitsubishiMode
-      int                     HVAC_Temp,           // Example 21  (°c)
-      HvacMitsubishiFanMode    HVAC_FanMode,        // Example FAN_SPEED_AUTO  HvacMitsubishiFanMode
-      HvacMitsubishiVanneMode    HVAC_VanneMode,      // Example VANNE_AUTO_MOVE  HvacMitsubishiVanneMode
-      int                  OFF                  // Example false
+      HvacMitsubishiMode        HVAC_Mode,           // Example HVAC_HOT  HvacMitsubishiMode
+      int                       HVAC_Temp,           // Example 21  (°c)
+      HvacMitsubishiFanMode     HVAC_FanMode,        // Example FAN_SPEED_AUTO  HvacMitsubishiFanMode
+      HvacMitsubishiVanneMode   HVAC_VanneMode,      // Example VANNE_AUTO_MOVE  HvacMitsubishiVanneMode
+      int                       OFF                  // Example false
     );
     void sendJVC(unsigned long data, int nbits, int repeat); // *Note instead of sending the REPEAT constant if you want the JVC repeat signal sent, send the original code value and change the repeat argument from 0 to 1. JVC protocol repeats by skipping the header NOT by sending a separate code value like NEC does.
     // private:

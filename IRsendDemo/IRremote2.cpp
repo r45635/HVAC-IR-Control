@@ -221,37 +221,37 @@ void IRsend::sendPanasonic(unsigned int address, unsigned long data) {
 /* Send IR command to Mitsubishi HVAC - sendHvacMitsubishi
 /***************************************************************************/
 void IRsend::sendHvacMitsubishi(
-  HvacMitsubishiMode       HVAC_Mode,           // Example HVAC_HOT  HvacMitsubishiMode
+  HvacMitsubishiMode      HVAC_Mode,           // Example HVAC_HOT  HvacMitsubishiMode
   int                     HVAC_Temp,           // Example 21  (°c)
-  HvacMitsubishiFanMode    HVAC_FanMode,        // Example FAN_SPEED_AUTO  HvacMitsubishiFanMode
-  HvacMitsubishiVanneMode    HVAC_VanneMode,      // Example VANNE_AUTO_MOVE  HvacMitsubishiVanneMode
-  int                  OFF                  // Example false
+  HvacMitsubishiFanMode   HVAC_FanMode,        // Example FAN_SPEED_AUTO  HvacMitsubishiFanMode
+  HvacMitsubishiVanneMode HVAC_VanneMode,      // Example VANNE_AUTO_MOVE  HvacMitsubishiVanneMode
+  int                     OFF                  // Example false
 )
 {
 
-  boolean debug = false;
+//#define  HVAC_MITSUBISHI_DEBUG;  // Un comment to access DEBUG information through Serial Interface
 
   byte mask = 1; //our bitmask
   byte data[18] = { 0x23, 0xCB, 0x26, 0x01, 0x00, 0x20, 0x08, 0x06, 0x30, 0x45, 0x67, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1F };
-  //bool OFF = false;
-  byte i = 0;
+  // data array is a valid trame, only byte to be chnaged will be updated.
 
-  if (debug) {
-    Serial.println("Packet to send: ");
-    for (i = 0; i < 18; i++) {
-      Serial.print("_");
-      Serial.print(data[i], HEX);
-    }
-    Serial.println(".");
+  byte i;
+
+#ifdef HVAC_MITSUBISHI_DEBUG
+  Serial.println("Packet to send: ");
+  for (i = 0; i < 18; i++) {
+    Serial.print("_");
+    Serial.print(data[i], HEX);
   }
+  Serial.println(".");
+#endif
+
   // Byte 6 - On / Off
   if (OFF) {
-    data[5] = (byte) 0x0;
+    data[5] = (byte) 0x0; // Turn OFF HVAC
   } else {
-    data[5] = (byte) 0x20;
+    data[5] = (byte) 0x20; // Tuen ON HVAC
   }
-
-  //HvacMitsubishiMode HVAC_Mode = HVAC_HOT;
 
   // Byte 7 - Mode
   switch (HVAC_Mode)
@@ -263,24 +263,13 @@ void IRsend::sendHvacMitsubishi(
     default: break;
   }
 
-  //byte HVACTemperature = 24;  // 22
   // Byte 8 - Temperature
   // Check Min Max For Hot Mode
   byte Temp;
-  if (HVAC_Temp > 31) {
-    Temp = 31;
-  }
-  else if (HVAC_Temp < 16) {
-    Temp = 16;
-  }
-  else {
-    Temp = HVAC_Temp;
-  };
+  if (HVAC_Temp > 31) { Temp = 31;}
+  else if (HVAC_Temp < 16) { Temp = 16; } 
+  else { Temp = HVAC_Temp; };
   data[7] = (byte) Temp - 16;
-
-  //  HvacMitsubishiFanMode     HVAC_FanMode = FAN_SPEED_AUTO; //FAN_SPEED_SILENT;
-  //  HvacMitsubishiVanneMode   HVAC_VanneMode = VANNE_AUTO_MOVE; // VANNE_AUTO
-
 
   // Byte 10 - FAN / VANNE
   switch (HVAC_FanMode)
@@ -306,87 +295,49 @@ void IRsend::sendHvacMitsubishi(
     default: break;
   }
 
-
   // Byte 18 - CRC
   data[17] = 0;
   for (i = 0; i < 17; i++) {
-    data[17] = (byte) data[i] + data[17];
+    data[17] = (byte) data[i] + data[17];  // CRC is a simple bits addition
   }
 
-  if (debug) {
-    Serial.println("Packet to send: ");
-    for (i = 0; i < 18; i++) {
-      Serial.print("_");
-      Serial.print(data[i], HEX);
-    }
-    Serial.println(".");
-    for (i = 0; i < 18; i++) {
-      Serial.print(data[i], BIN);
-      Serial.print(" ");
-    }
-    Serial.println(".");
+#ifdef HVAC_MITSUBISHI_DEBUG
+  Serial.println("Packet to send: ");
+  for (i = 0; i < 18; i++) {
+    Serial.print("_"); Serial.print(data[i], HEX);
   }
+  Serial.println(".");
+  for (i = 0; i < 18; i++) {
+    Serial.print(data[i], BIN); Serial.print(" ");
+  }
+  Serial.println(".");
+#endif
 
-  enableIROut(38);
+  enableIROut(38);  // 38khz
   space(0);
-  // Header for the Packet
-  mark(HVAC_MITSUBISHI_HDR_MARK);
-  space(HVAC_MITSUBISHI_HDR_SPACE);
-  for (i = 0; i < 18; i++) {
-    //Serial.print(data[i],HEX); Serial.print(":");
-    //Serial.print(data[i],BIN); Serial.print(":");
-    // Send all Bits from Byte Data in Reverse Order
-    for (mask = 00000001; mask > 0; mask <<= 1) { //iterate through bit mask
-      if (data[i] & mask) { // if bitwise AND resolves to true
-        //digitalWrite(transmit,HIGH); // send 1
-        //Serial.print('1');
-        mark(HVAC_MITSUBISHI_BIT_MARK);
-        space(HVAC_MITSUBISHI_ONE_SPACE);
+  for (int j = 0; j < 2; j++) {  // For Mitsubishi IR protocol we have to send two time the packet data
+    // Header for the Packet
+    mark(HVAC_MITSUBISHI_HDR_MARK);
+    space(HVAC_MITSUBISHI_HDR_SPACE);
+    for (i = 0; i < 18; i++) {
+      // Send all Bits from Byte Data in Reverse Order
+      for (mask = 00000001; mask > 0; mask <<= 1) { //iterate through bit mask
+        if (data[i] & mask) { // Bit ONE
+          mark(HVAC_MITSUBISHI_BIT_MARK);
+          space(HVAC_MITSUBISHI_ONE_SPACE);
+        }
+        else { // Bit ZERO
+          mark(HVAC_MITSUBISHI_BIT_MARK);
+          space(HVAC_MISTUBISHI_ZERO_SPACE);
+        }
+        //Next bits
       }
-      else { //if bitwise and resolves to false
-        //digitalWrite(transmit,LOW); // send 0
-        //Serial.print('0');
-        mark(HVAC_MITSUBISHI_BIT_MARK);
-        space(HVAC_MISTUBISHI_ZERO_SPACE);
-      }
-      //Next bits
     }
-    //Serial.println(".");
-    // Next Bytes
+    // End of Packet and retransmission of the Packet
+    mark(HVAC_MITSUBISHI_RPT_MARK);
+    space(HVAC_MITSUBISHI_RPT_SPACE);
+    space(0); // Just to be sure
   }
-
-
-  // End of Packet and retransmission of the Packet
-  mark(HVAC_MITSUBISHI_RPT_MARK);
-  space(HVAC_MITSUBISHI_RPT_SPACE);
-  mark(HVAC_MITSUBISHI_HDR_MARK);
-  space(HVAC_MITSUBISHI_HDR_SPACE);
-  for (i = 0; i < 18; i++) {
-    //Serial.print(data[i],HEX); Serial.print(":");
-    //Serial.print(data[i],BIN); Serial.print(":");
-    // Send all Bits from Byte Data in Reverse Order
-    for (mask = 00000001; mask > 0; mask <<= 1) { //iterate through bit mask
-      if (data[i] & mask) { // if bitwise AND resolves to true
-        //digitalWrite(transmit,HIGH); // send 1
-        //Serial.print('1');
-        mark(HVAC_MITSUBISHI_BIT_MARK);
-        space(HVAC_MITSUBISHI_ONE_SPACE);
-      }
-      else { //if bitwise and resolves to false
-        //digitalWrite(transmit,LOW); // send 0
-        //Serial.print('0');
-        mark(HVAC_MITSUBISHI_BIT_MARK);
-        space(HVAC_MISTUBISHI_ZERO_SPACE);
-      }
-      //Next bits
-    }
-    //Serial.println(".");
-    // Next Bytes
-  }
-  // End of Packet Transmission
-  mark(HVAC_MITSUBISHI_RPT_MARK);
-  space(HVAC_MITSUBISHI_RPT_SPACE);
-  space(0); // Just to be sure
 }
 
 void IRsend::sendJVC(unsigned long data, int nbits, int repeat)

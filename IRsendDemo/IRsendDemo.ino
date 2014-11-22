@@ -4,6 +4,9 @@
  * Version 0.1 July, 2009
  * Copyright 2009 Ken Shirriff
  * http://arcfn.com
+ *
+ * Mitsubishi HVAC protocol added by Vincent Cruvellier.
+ *
  */
 
 #include "IRremote2.h"
@@ -24,9 +27,12 @@ void setup()
 void loop() {
   
   if (Serial.read() != -1) {
-      Serial.println("Waiting 5 Seconds to send ON command.");
-      delay(5000);
+      Serial.println("Switch OFF and Wait 15 Seconds to send ON command.");
+      irsend.sendHvacMitsubishi(HVAC_HOT, 21, FAN_SPEED_AUTO, VANNE_AUTO_MOVE, true);
+      delay(15000);    
+      Serial.println("Turn ON\nCommand 'HVAC_HOT, 21, FAN_SPEED_AUTO, VANNE_AUTO_MOVE'  Next Command in 10 sec.");
       irsend.sendHvacMitsubishi(HVAC_HOT, 23, FAN_SPEED_1, VANNE_AUTO_MOVE, false);
+      delay(10000);
       Serial.println("Command 'HVAC_HOT, 23, FAN_SPEED_1, VANNE_AUTO_MOVE' sent.\n Waiting 60 Seconds to switch to FAN_SPEED_4.");
       delay(60000);
       irsend.sendHvacMitsubishi(HVAC_HOT, 25, FAN_SPEED_4, VANNE_H1, false);
