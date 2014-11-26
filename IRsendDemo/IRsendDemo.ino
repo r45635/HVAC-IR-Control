@@ -22,6 +22,8 @@ void setup()
  Serial.println("IR Demo send a cmd To Mitsubishi HVAC");
  Serial.println("Please any data to the Serial Interface in order to start the Demo");
  Serial.println("");
+ delay (2000);
+ irsend.HVACcalibration();
 }
 
 void loop() {

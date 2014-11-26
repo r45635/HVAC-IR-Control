@@ -218,6 +218,20 @@ void IRsend::sendPanasonic(unsigned int address, unsigned long data) {
 }
 
 /****************************************************************************
+/* Send IR command to Calibration
+/***************************************************************************/
+void IRsend::HVACcalibration()
+{
+  enableIROut(38);  // 38khz
+  space(0);
+  for (int i=0; i < 5; i++) {
+    mark(HVAC_MITSUBISHI_HDR_MARK);
+    space(HVAC_MITSUBISHI_HDR_SPACE);
+    }
+}
+
+
+/****************************************************************************
 /* Send IR command to Mitsubishi HVAC - sendHvacMitsubishi
 /***************************************************************************/
 void IRsend::sendHvacMitsubishi(
