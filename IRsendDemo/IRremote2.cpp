@@ -224,10 +224,11 @@ void IRsend::HVACcalibration()
 {
   enableIROut(38);  // 38khz
   space(0);
-  for (int i=0; i < 5; i++) {
+  for (int i=0; i < 20; i++) {
     mark(HVAC_MITSUBISHI_HDR_MARK);
     space(HVAC_MITSUBISHI_HDR_SPACE);
     }
+  space(0);   
 }
 
 

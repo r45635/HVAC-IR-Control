@@ -27,6 +27,8 @@ void setup()
 }
 
 void loop() {
+ delay (2000);
+ irsend.HVACcalibration();
   
   if (Serial.read() != -1) {
       Serial.println("Switch OFF and Wait 15 Seconds to send ON command.");
