@@ -5,13 +5,13 @@
  * Copyright 2009 Ken Shirriff
  * http://arcfn.com
  *
+ * Version update Nov, 2014
  * Mitsubishi HVAC protocol added by Vincent Cruvellier.
+ *  delaymicrosecond() modified to avoid limit.
  *
  */
 
 #include "IRremote2.h"
-
-// TX PIN 9
 
 IRsend irsend;
 
@@ -22,14 +22,10 @@ void setup()
  Serial.println("IR Demo send a cmd To Mitsubishi HVAC");
  Serial.println("Please any data to the Serial Interface in order to start the Demo");
  Serial.println("");
- delay (2000);
- irsend.HVACcalibration();
 }
 
 void loop() {
- delay (2000);
- irsend.HVACcalibration();
-  
+ 
   if (Serial.read() != -1) {
       Serial.println("Switch OFF and Wait 15 Seconds to send ON command.");
       irsend.sendHvacMitsubishi(HVAC_HOT, 21, FAN_SPEED_AUTO, VANNE_AUTO_MOVE, true);
@@ -46,7 +42,7 @@ void loop() {
       Serial.println("Command 'HVAC_HOT, 22, FAN_SPEED_SILENT, VANNE_AUTO_MOVE' sent.\n Waiting 30 Seconds to send OFF.");
       delay(30000);
       irsend.sendHvacMitsubishi(HVAC_HOT, 21, FAN_SPEED_AUTO, VANNE_AUTO_MOVE, true);
-      Serial.println("Command sent. End Of Sketch");
+      Serial.println("Turn OFF\nCommand sent. End Of Sketch");
       delay(15000); // Let HVAC sleeping
 
   }

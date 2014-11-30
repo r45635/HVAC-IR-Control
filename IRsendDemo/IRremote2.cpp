@@ -218,21 +218,6 @@ void IRsend::sendPanasonic(unsigned int address, unsigned long data) {
 }
 
 /****************************************************************************
-/* Send IR command to Calibration
-/***************************************************************************/
-void IRsend::HVACcalibration()
-{
-  enableIROut(38);  // 38khz
-  space(0);
-  for (int i=0; i < 20; i++) {
-    mark(HVAC_MITSUBISHI_HDR_MARK);
-    space(HVAC_MITSUBISHI_HDR_SPACE);
-    }
-  space(0);   
-}
-
-
-/****************************************************************************
 /* Send IR command to Mitsubishi HVAC - sendHvacMitsubishi
 /***************************************************************************/
 void IRsend::sendHvacMitsubishi(
@@ -402,7 +387,9 @@ void IRsend::mark(int time) {
   // Sends an IR mark for the specified number of microseconds.
   // The mark output is modulated at the PWM frequency.
   TIMER_ENABLE_PWM; // Enable pin 3 PWM output
-  delayMicroseconds(time);
+  //delayMicroseconds(time);
+  // Use IRlib containment for delay in µsecond
+  if(time){if(time>16000) {delayMicroseconds(time % 1000); delay(time/1000); } else delayMicroseconds(time);};
 }
 
 /* Leave pin off for time (given in microseconds) */
@@ -410,7 +397,9 @@ void IRsend::space(int time) {
   // Sends an IR space for the specified number of microseconds.
   // A space is no output, so the PWM output is disabled.
   TIMER_DISABLE_PWM; // Disable pin 3 PWM output
-  delayMicroseconds(time);
+  //delayMicroseconds(time);
+  // Use IRlib containment for delay in µsecond  
+  if(time){if(time>16000) {delayMicroseconds(time % 1000); delay(time/1000); } else delayMicroseconds(time);};
 }
 
 void IRsend::enableIROut(int khz) {
