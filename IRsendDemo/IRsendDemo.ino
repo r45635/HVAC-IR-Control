@@ -19,13 +19,17 @@ void setup()
 {
   Serial.begin(9600);
   //IR Demo send a cmd To Mitsubishi HVAC
- Serial.println("IR Demo send a cmd To Mitsubishi HVAC");
+ Serial.println("IR Demo send a cmd To HVAC Mitsubishi or Panasonic");
  Serial.println("Please any data to the Serial Interface in order to start the Demo");
  Serial.println("");
 }
 
 void loop() {
- 
+#define  HVAC_PANASONIC_SKETCH;
+
+
+
+  #ifdef HVAC_MITSUBISHI_SKETCH
   if (Serial.read() != -1) {
       Serial.println("Switch OFF and Wait 15 Seconds to send ON command.");
       irsend.sendHvacMitsubishi(HVAC_HOT, 21, FAN_SPEED_AUTO, VANNE_AUTO_MOVE, true);
@@ -46,4 +50,48 @@ void loop() {
       delay(15000); // Let HVAC sleeping
 
   }
+ #endif
+ 
+ #ifdef HVAC_PANASONIC_SKETCH
+  if (Serial.read() != -1) {
+    
+      Serial.println("Set HVAC in Hot mode with temp at 25 without switching the HVAC power.");
+      irsend.sendHvacPanasonic(HVAC_HOT, 25, FAN_SPEED_AUTO, VANNE_AUTO, NORMAL, false);
+      delay(10000);
+
+      Serial.println("Switching the HVAC power.");
+      irsend.sendHvacPanasonic(HVAC_HOT, 25, FAN_SPEED_AUTO, VANNE_AUTO, NORMAL, true);
+      delay(10000);
+
+      Serial.println("Play with Vane in powition 1.");
+      irsend.sendHvacPanasonic(HVAC_HOT, 25, FAN_SPEED_AUTO, VANNE_H1, NORMAL, false);
+      delay(10000);
+
+      Serial.println("Play with Vane in powition 2.");
+      irsend.sendHvacPanasonic(HVAC_HOT, 25, FAN_SPEED_AUTO, VANNE_H2, NORMAL, false);
+      delay(10000);
+
+      Serial.println("Play with Vane in powition 3.");
+      irsend.sendHvacPanasonic(HVAC_HOT, 25, FAN_SPEED_AUTO, VANNE_H3, NORMAL, false);
+      delay(10000);
+
+      Serial.println("Play with Vane in powition 4.");
+      irsend.sendHvacPanasonic(HVAC_HOT, 25, FAN_SPEED_AUTO, VANNE_H4, NORMAL, false);
+      delay(10000);
+
+      Serial.println("Play with Vane in powition 5.");
+      irsend.sendHvacPanasonic(HVAC_HOT, 25, FAN_SPEED_AUTO, VANNE_H5, NORMAL, false);
+      delay(10000);
+ 
+      Serial.println("Switching the HVAC OFF.");
+      irsend.sendHvacPanasonic(HVAC_HOT, 25, FAN_SPEED_AUTO, VANNE_AUTO, NORMAL, true);
+      delay(10000);
+      
+      Serial.println("End of PNANASONIC Sketch.");
+   
+  }
+
+ #endif
+ 
+ 
 }
