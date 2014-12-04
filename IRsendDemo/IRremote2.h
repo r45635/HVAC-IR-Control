@@ -94,23 +94,25 @@ class IRrecv
 #define VIRTUAL
 #endif
 
-typedef enum HvacMitsubishiMode {
+typedef enum HvacMode {
   HVAC_HOT,
   HVAC_COLD,
   HVAC_DRY,
+  HVAC_FAN, // used for Panasonic only
   HVAC_AUTO
-}; // HVAC MITSUBISHI MODE
+}; // HVAC  MODE
 
-typedef enum HvacMitsubishiFanMode {
+typedef enum HvacFanMode {
   FAN_SPEED_1,
   FAN_SPEED_2,
   FAN_SPEED_3,
   FAN_SPEED_4,
+  FAN_SPEED_5,
   FAN_SPEED_AUTO,
   FAN_SPEED_SILENT
-};  // HVAC MITSUBISHI FAN MODE
+};  // HVAC  FAN MODE
 
-typedef enum HvacMitsubishiVanneMode {
+typedef enum HvacVanneMode {
   VANNE_AUTO,
   VANNE_H1,
   VANNE_H2,
@@ -118,7 +120,14 @@ typedef enum HvacMitsubishiVanneMode {
   VANNE_H4,
   VANNE_H5,
   VANNE_AUTO_MOVE
-};  // HVAC MITSUBISHI VANNE MODE
+};  // HVAC  VANNE MODE
+
+typedef enum HvacProfileMode {
+  NORMAL,
+  QUIET,
+  BOOST
+};  // HVAC PANASONIC OPTION MODE
+
 
 class IRsend
 {
@@ -138,12 +147,22 @@ class IRsend
     void sendSharpRaw(unsigned long data, int nbits);
     void sendPanasonic(unsigned int address, unsigned long data);
     void sendHvacMitsubishi(
-      HvacMitsubishiMode        HVAC_Mode,           // Example HVAC_HOT  HvacMitsubishiMode
+      HvacMode                  HVAC_Mode,           // Example HVAC_HOT  HvacMitsubishiMode
       int                       HVAC_Temp,           // Example 21  (°c)
-      HvacMitsubishiFanMode     HVAC_FanMode,        // Example FAN_SPEED_AUTO  HvacMitsubishiFanMode
-      HvacMitsubishiVanneMode   HVAC_VanneMode,      // Example VANNE_AUTO_MOVE  HvacMitsubishiVanneMode
+      HvacFanMode               HVAC_FanMode,        // Example FAN_SPEED_AUTO  HvacMitsubishiFanMode
+      HvacVanneMode             HVAC_VanneMode,      // Example VANNE_AUTO_MOVE  HvacMitsubishiVanneMode
       int                       OFF                  // Example false
     );
+    void sendHvacPanasonic(
+      HvacMode                  HVAC_Mode,           // Example HVAC_HOT  HvacPanasonicMode
+      int                       HVAC_Temp,           // Example 21  (°c)
+      HvacFanMode               HVAC_FanMode,        // Example FAN_SPEED_AUTO  HvacPanasonicFanMode
+      HvacVanneMode             HVAC_VanneMode,      // Example VANNE_AUTO_MOVE  HvacPanasonicVanneMode
+      HvacProfileMode           HVAC_ProfileMode,    // Example QUIET HvacProfileMode
+      int                       HVAC_SWITCH          // Example false
+    );
+
+    
     void sendJVC(unsigned long data, int nbits, int repeat); // *Note instead of sending the REPEAT constant if you want the JVC repeat signal sent, send the original code value and change the repeat argument from 0 to 1. JVC protocol repeats by skipping the header NOT by sending a separate code value like NEC does.
     // private:
     void sendSAMSUNG(unsigned long data, int nbits);
