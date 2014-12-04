@@ -218,13 +218,177 @@ void IRsend::sendPanasonic(unsigned int address, unsigned long data) {
 }
 
 /****************************************************************************
+/* Send IR command to Panasonic HVAC - sendHvacPanasonic
+/***************************************************************************/
+void IRsend::sendHvacPanasonic(
+  HvacMode        HVAC_Mode,           // Example HVAC_HOT  HvacPanasonicMode
+  int             HVAC_Temp,           // Example 21  (°c)
+  HvacFanMode     HVAC_FanMode,        // Example FAN_SPEED_AUTO  HvacPanasonicFanMode
+  HvacVanneMode   HVAC_VanneMode,      // Example VANNE_AUTO_MOVE  HvacPanasonicVanneMode
+  HvacProfileMode HVAC_ProfileMode,	// Example QUIET HvacPanasonicProfileMode
+  int             HVAC_SWITCH           // Example false
+)
+{
+
+#define  HVAC_PANASONIC_DEBUG;  // Un comment to access DEBUG information through Serial Interface
+
+  byte mask = 1; //our bitmask
+  byte data[19] = { 0x02, 0x20, 0xE0, 0x04, 0x00, 0x48, 0x3C, 0x80, 0xAF, 0x00, 0x00, 0x0E, 0xE0, 0x10, 0x00, 0x01, 0x00, 0x06, 0xBE };
+  byte dataconst[8] = { 0x02, 0x20, 0xE0, 0x04, 0x00, 0x00, 0x00, 0x06};
+
+  // data array is a valid trame, only byte to be chnaged will be updated.
+
+  byte i;
+
+#ifdef HVAC_PANASONIC_DEBUG
+  Serial.println("Basis: ");
+  for (i = 0; i < 19; i++) {
+    Serial.print("_");
+    Serial.print(data[i], HEX);
+  }
+  Serial.println(".");
+#endif
+
+  // Byte 6 - On / Off
+  if (HVAC_SWITCH) {
+    data[5] = (byte) 0x08; // Switch HVAC Power
+  } else {
+    data[5] = (byte) 0x09; // Do not switch HVAC Power
+  }
+
+  // Byte 6 - Mode
+  switch (HVAC_Mode)
+  {
+    case HVAC_HOT:   data[5] = (byte) data[5] | B01000000; break;
+    case HVAC_FAN:   data[5] = (byte) data[5] | B01100000; break;
+    case HVAC_COLD:  data[5] = (byte) data[5] | B00011000; break;
+    case HVAC_DRY:   data[5] = (byte) data[5] | B00100000; break;
+    case HVAC_AUTO:  data[5] = (byte) data[5] | B00000000; break;
+    default: break;
+  }
+
+  // Byte 7 - Temperature
+  // Check Min Max For Hot Mode
+  byte Temp;
+  if (HVAC_Temp > 30) { Temp = 30;}
+  else if (HVAC_Temp < 16) { Temp = 16; } 
+  else { Temp = HVAC_Temp; };
+  data[6] = (byte) (Temp - 16) <<1;
+  data[6] = (byte) data[6] | B00100000;
+  //bits used form the temp are [4:1]
+  //data|6] = data[6] << 1;
+  
+
+  // Byte 9 - FAN / VANNE
+  switch (HVAC_FanMode)
+  {
+    case FAN_SPEED_1:       data[8] = (byte) B00110000; break;
+    case FAN_SPEED_2:       data[8] = (byte) B01000000; break;
+    case FAN_SPEED_3:       data[8] = (byte) B01010000; break;
+    case FAN_SPEED_4:       data[8] = (byte) B01100000; break;
+    case FAN_SPEED_5:       data[8] = (byte) B01010000; break;
+    case FAN_SPEED_AUTO:    data[8] = (byte) B10100000; break;
+    default: break;
+  }
+
+  switch (HVAC_VanneMode)
+  {
+    case VANNE_AUTO:        data[8] = (byte) data[8] | B00001111; break;
+    case VANNE_AUTO_MOVE:   data[8] = (byte) data[8] | B00001111; break; //same as AUTO in the PANASONIC CASE
+    case VANNE_H1:          data[8] = (byte) data[8] | B00000001; break;
+    case VANNE_H2:          data[8] = (byte) data[8] | B00000010; break;
+    case VANNE_H3:          data[8] = (byte) data[8] | B00000011; break;
+    case VANNE_H4:          data[8] = (byte) data[8] | B00000100; break;
+    case VANNE_H5:          data[8] = (byte) data[8] | B00000101; break;
+    default: break;
+  }
+
+   // Byte 14 - Profile
+  switch (HVAC_ProfileMode)
+  {
+    case NORMAL:        data[13] = (byte) B00010000; break;
+    case QUIET:         data[13] = (byte) B01100000; break;
+    case BOOST:         data[13] = (byte) B00010001; break;
+    default: break;
+  }  
+  
+  
+  // Byte 18 - CRC
+  data[18] = 0;
+  for (i = 0; i < 18; i++) {
+    data[18] = (byte) data[i] + data[18];  // CRC is a simple bits addition
+  }
+
+#ifdef HVAC_PANASONIC_DEBUG
+  Serial.println("Packet to send: ");
+  for (i = 0; i < 19; i++) {
+    Serial.print("_"); Serial.print(data[i], HEX);
+  }
+  Serial.println(".");
+  for (i = 0; i < 19; i++) {
+    Serial.print(data[i], BIN); Serial.print(" ");
+  }
+  Serial.println(".");
+#endif
+
+  enableIROut(38);  // 38khz
+  space(0);
+  
+  //Send constant frame #1
+    mark(HVAC_PANASONIC_HDR_MARK);
+    space(HVAC_PANASONIC_HDR_SPACE);
+    for (i = 0; i < 8; i++) {
+      // Send all Bits from Byte dataconst in Reverse Order
+      for (mask = 00000001; mask > 0; mask <<= 1) { //iterate through bit mask
+        if (dataconst[i] & mask) { // Bit ONE
+          mark(HVAC_PANASONIC_BIT_MARK);
+          space(HVAC_PANASONIC_ONE_SPACE);
+        }
+        else { // Bit ZERO
+          mark(HVAC_PANASONIC_BIT_MARK);
+          space(HVAC_PANASONIC_ZERO_SPACE);
+        }
+        //Next bits
+      }
+    }  
+     mark(HVAC_PANASONIC_RPT_MARK);
+     space(HVAC_PANASONIC_RPT_SPACE);
+ 
+  //Send frame #2  
+    mark(HVAC_PANASONIC_HDR_MARK);
+    space(HVAC_PANASONIC_HDR_SPACE);
+    for (i = 0; i < 19; i++) {
+      // Send all Bits from Byte Data in Reverse Order
+      for (mask = 00000001; mask > 0; mask <<= 1) { //iterate through bit mask
+        if (data[i] & mask) { // Bit ONE
+          mark(HVAC_PANASONIC_BIT_MARK);
+          space(HVAC_PANASONIC_ONE_SPACE);
+        }
+        else { // Bit ZERO
+          mark(HVAC_PANASONIC_BIT_MARK);
+          space(HVAC_PANASONIC_ZERO_SPACE);
+        }
+        //Next bits
+      }
+    }
+    // End of Packet and retransmission of the Packet
+      mark(HVAC_PANASONIC_RPT_MARK);
+      space(HVAC_PANASONIC_RPT_SPACE);
+       space(0);
+
+
+}
+
+
+
+/****************************************************************************
 /* Send IR command to Mitsubishi HVAC - sendHvacMitsubishi
 /***************************************************************************/
 void IRsend::sendHvacMitsubishi(
-  HvacMitsubishiMode      HVAC_Mode,           // Example HVAC_HOT  HvacMitsubishiMode
+  HvacMode                HVAC_Mode,           // Example HVAC_HOT  HvacMitsubishiMode
   int                     HVAC_Temp,           // Example 21  (°c)
-  HvacMitsubishiFanMode   HVAC_FanMode,        // Example FAN_SPEED_AUTO  HvacMitsubishiFanMode
-  HvacMitsubishiVanneMode HVAC_VanneMode,      // Example VANNE_AUTO_MOVE  HvacMitsubishiVanneMode
+  HvacFanMode             HVAC_FanMode,        // Example FAN_SPEED_AUTO  HvacMitsubishiFanMode
+  HvacVanneMode           HVAC_VanneMode,      // Example VANNE_AUTO_MOVE  HvacMitsubishiVanneMode
   int                     OFF                  // Example false
 )
 {
@@ -278,6 +442,7 @@ void IRsend::sendHvacMitsubishi(
     case FAN_SPEED_2:       data[9] = (byte) B00000010; break;
     case FAN_SPEED_3:       data[9] = (byte) B00000011; break;
     case FAN_SPEED_4:       data[9] = (byte) B00000100; break;
+    case FAN_SPEED_5:       data[9] = (byte) B00000100; break; //No FAN speed 5 for MITSUBISHI so it is consider as Speed 4
     case FAN_SPEED_AUTO:    data[9] = (byte) B10000000; break;
     case FAN_SPEED_SILENT:  data[9] = (byte) B00000101; break;
     default: break;
