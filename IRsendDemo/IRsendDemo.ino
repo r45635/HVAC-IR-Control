@@ -8,6 +8,8 @@
  * Version update Nov, 2014
  * Mitsubishi HVAC protocol added by Vincent Cruvellier.
  *  delaymicrosecond() modified to avoid limit.
+ * Version update Dec, 2014
+ * Panasonic HVAC protocol added by Mathieu Thomas. 
  *
  */
 
@@ -63,23 +65,23 @@ void loop() {
       irsend.sendHvacPanasonic(HVAC_HOT, 25, FAN_SPEED_AUTO, VANNE_AUTO, NORMAL, true);
       delay(10000);
 
-      Serial.println("Play with Vane in powition 1.");
+      Serial.println("Play with Vane in position 1.");
       irsend.sendHvacPanasonic(HVAC_HOT, 25, FAN_SPEED_AUTO, VANNE_H1, NORMAL, false);
       delay(10000);
 
-      Serial.println("Play with Vane in powition 2.");
+      Serial.println("Play with Vane in position 2.");
       irsend.sendHvacPanasonic(HVAC_HOT, 25, FAN_SPEED_AUTO, VANNE_H2, NORMAL, false);
       delay(10000);
 
-      Serial.println("Play with Vane in powition 3.");
+      Serial.println("Play with Vane in position 3.");
       irsend.sendHvacPanasonic(HVAC_HOT, 25, FAN_SPEED_AUTO, VANNE_H3, NORMAL, false);
       delay(10000);
 
-      Serial.println("Play with Vane in powition 4.");
+      Serial.println("Play with Vane in position 4.");
       irsend.sendHvacPanasonic(HVAC_HOT, 25, FAN_SPEED_AUTO, VANNE_H4, NORMAL, false);
       delay(10000);
 
-      Serial.println("Play with Vane in powition 5.");
+      Serial.println("Play with Vane in position 5.");
       irsend.sendHvacPanasonic(HVAC_HOT, 25, FAN_SPEED_AUTO, VANNE_H5, NORMAL, false);
       delay(10000);
  

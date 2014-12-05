@@ -1,11 +1,12 @@
 
 HVAC IR Control
 
- - Mitsubishi-Inverter-IR-Control
- - Panasonic IR Control
+ - Mitsubishi-Inverter-		IR-Control
+ - Panasonic 				IR-Control
+ - DAIKIN 					IR-Control
 ==============================
 
-Ir Send - Updated for HVAC Mitsubishi & Panasanonic IR control
+Ir Send - Updated for HVAC Mitsubishi & Panasonic IR control
 
 Project:
 Controlling Mitsubishi HVAC from IR Led, Through Arduino. -- Owner Vincent
@@ -15,11 +16,12 @@ Controlling Panasonic HVAC from IR Led, Through Arduino. -- Owner Mathieu
 Contolling Others HVAC brandt: ... You're welcome to collaborate !
 
 Steps:
+MITSUBISHI:
 Catch the IR trame through AnalysiR -- Done.
 Identify Trame Timing Specification -- Done.
 Identify Packet Data -- Done.
 Reverse Engineering to identify Commands Parameters contains in the Packet Date -- Done.
-Update Arduino-IRremote for HVAC Mitsubishi Protocol:
+Update Arduino-IRremote for HVAC Mitsubishi:
   - Trame Specification - Done.
   - HVAC Mitsubishi Send Void : Works with the following:
       - ON/OFF
@@ -34,3 +36,24 @@ Update Arduino-IRremote for HVAC Mitsubishi Protocol:
       - Time Programation Automatic Turn On or Off Function.
       - HVAC Mitsubishi Receive Void.
   
+PANASONIC:
+Catch the IR trame through AnalysiR -- Done.
+Identify Trame Timing Specification -- Done.
+Identify Packet Data -- Done.
+Reverse Engineering to identify Commands Parameters contains in the Packet Date -- Done.
+Update Arduino-IRremote for HVAC Panasonic:
+  - Trame Specification - Done.
+  - HVAC Panasonic Send Void : Works with the following:
+      - ON/OFF
+      - HVAC Mode (Hot, Cold, Dry, Auto)
+      - Temperature (Only Verify Hot : +16°c <-> +31°c),
+      - FAN Mode (Speed 1, 2, 3, 4, AUTO, SILENT)
+      - Vanne Mode (Position 1, 2, 3, 4, 5, AUTO, AUTO_MOVE)
+      - CRC Packet implemented,
+
+Arduino sketch updated for both Mitsubishi and Panasonic.
+
+DAIKIN:
+Catch the IR trame through AnalysiR -- Done.
+Identify Trame Timing Specification -- on Going.
+
