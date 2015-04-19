@@ -27,7 +27,7 @@ void setup()
 }
 
 void loop() {
-#define  HVAC_PANASONIC_SKETCH;
+#define  HVAC_MITSUBISHI_SKETCH;
 
 
 
