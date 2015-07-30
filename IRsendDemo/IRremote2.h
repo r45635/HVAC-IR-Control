@@ -122,6 +122,21 @@ typedef enum HvacVanneMode {
   VANNE_AUTO_MOVE
 };  // HVAC  VANNE MODE
 
+typedef enum HvacWideVanneMode {
+  WIDE_LEFT_END,
+  WIDE_LEFT,
+  WIDE_MIDDLE,
+  WIDE_RIGHT,
+  WIDE_RIGHT_END
+};  // HVAC  WIDE VANNE MODE
+
+typedef enum HvacAreaMode {
+  AREA_SWING,
+  AREA_LEFT,
+  AREA_AUTO,
+  AREA_RIGHT
+};  // HVAC  WIDE VANNE MODE
+
 typedef enum HvacProfileMode {
   NORMAL,
   QUIET,
@@ -152,6 +167,18 @@ class IRsend
       HvacFanMode               HVAC_FanMode,        // Example FAN_SPEED_AUTO  HvacMitsubishiFanMode
       HvacVanneMode             HVAC_VanneMode,      // Example VANNE_AUTO_MOVE  HvacMitsubishiVanneMode
       int                       OFF                  // Example false
+    );
+    void sendHvacMitsubishiFD(
+      HvacMode                  HVAC_Mode,           // Example HVAC_HOT  HvacMitsubishiMode
+      int                       HVAC_Temp,           // Example 21  (°c)
+      HvacFanMode               HVAC_FanMode,        // Example FAN_SPEED_AUTO  HvacMitsubishiFanMode
+      HvacVanneMode             HVAC_VanneMode,      // Example VANNE_AUTO_MOVE  HvacMitsubishiVanneMode
+      HvacAreaMode              HVAC_AreaMode,       // Example AREA_AUTO
+      HvacWideVanneMode         HVAC_WideMode,       // Example WIDE_MIDDLE
+      int                       HVAC_PLASMA,          // Example true to Turn ON PLASMA Function
+      int                       HVAC_CLEAN_MODE,      // Example false 
+      int                       HVAC_ISEE,            // Example False
+      int                       OFF                   // Example false to Turn ON HVAC / true to request to turn off
     );
     void sendHvacPanasonic(
       HvacMode                  HVAC_Mode,           // Example HVAC_HOT  HvacPanasonicMode
