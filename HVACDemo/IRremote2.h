@@ -100,7 +100,7 @@ typedef enum HvacMode {
   HVAC_DRY,
   HVAC_FAN, // used for Panasonic only
   HVAC_AUTO
-}; // HVAC  MODE
+} HvacMode_t; // HVAC  MODE
 
 typedef enum HvacFanMode {
   FAN_SPEED_1,
@@ -110,7 +110,7 @@ typedef enum HvacFanMode {
   FAN_SPEED_5,
   FAN_SPEED_AUTO,
   FAN_SPEED_SILENT
-};  // HVAC  FAN MODE
+} HvacFanMode_;  // HVAC  FAN MODE
 
 typedef enum HvacVanneMode {
   VANNE_AUTO,
@@ -120,7 +120,7 @@ typedef enum HvacVanneMode {
   VANNE_H4,
   VANNE_H5,
   VANNE_AUTO_MOVE
-};  // HVAC  VANNE MODE
+} HvacVanneMode_;  // HVAC  VANNE MODE
 
 typedef enum HvacWideVanneMode {
   WIDE_LEFT_END,
@@ -128,20 +128,20 @@ typedef enum HvacWideVanneMode {
   WIDE_MIDDLE,
   WIDE_RIGHT,
   WIDE_RIGHT_END
-};  // HVAC  WIDE VANNE MODE
+} HvacWideVanneMode_t;  // HVAC  WIDE VANNE MODE
 
 typedef enum HvacAreaMode {
   AREA_SWING,
   AREA_LEFT,
   AREA_AUTO,
   AREA_RIGHT
-};  // HVAC  WIDE VANNE MODE
+} HvacAreaMode_t;  // HVAC  WIDE VANNE MODE
 
 typedef enum HvacProfileMode {
   NORMAL,
   QUIET,
   BOOST
-};  // HVAC PANASONIC OPTION MODE
+} HvacProfileMode_t;  // HVAC PANASONIC OPTION MODE
 
 
 class IRsend

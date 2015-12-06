@@ -230,7 +230,7 @@ void IRsend::sendHvacPanasonic(
 )
 {
 
-#define  HVAC_PANASONIC_DEBUG;  // Un comment to access DEBUG information through Serial Interface
+#define HVAC_PANASONIC_DEBUG  // Un comment to access DEBUG information through Serial Interface
 
   byte mask = 1; //our bitmask
   byte data[19] = { 0x02, 0x20, 0xE0, 0x04, 0x00, 0x48, 0x3C, 0x80, 0xAF, 0x00, 0x00, 0x0E, 0xE0, 0x10, 0x00, 0x01, 0x00, 0x06, 0xBE };
@@ -556,7 +556,7 @@ void IRsend::sendHvacMitsubishiFD(
     case HVAC_AUTO:  data[6] = (byte) 0x00100000; break;    
     default: break;
   }
-  if (HVAC_ISEE)  { data[6] = (byte) data[6] | 0x01000000; break; }
+  if (HVAC_ISEE)  { data[6] = (byte) data[6] | 0x01000000;  }
 
   // Byte 7 - Temperature
   // Check Min Max For Hot Mode

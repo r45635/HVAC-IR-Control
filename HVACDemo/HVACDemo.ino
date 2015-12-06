@@ -10,7 +10,21 @@
  *  delaymicrosecond() modified to avoid limit.
  * Version update Dec, 2014
  * Panasonic HVAC protocol added by Mathieu Thomas. 
- *
+ * Version update Dec, 2015
+ * Mitsubishi HVAC protocol enhancement by Vincent Cruvellier.
+ *   added    void sendHvacMitsubishiFD(
+      HvacMode                  HVAC_Mode,           // Example HVAC_HOT  HvacMitsubishiMode
+      int                       HVAC_Temp,           // Example 21  (°c)
+      HvacFanMode               HVAC_FanMode,        // Example FAN_SPEED_AUTO  HvacMitsubishiFanMode
+      HvacVanneMode             HVAC_VanneMode,      // Example VANNE_AUTO_MOVE  HvacMitsubishiVanneMode
+      HvacAreaMode              HVAC_AreaMode,       // Example AREA_AUTO
+      HvacWideVanneMode         HVAC_WideMode,       // Example WIDE_MIDDLE
+      int                       HVAC_PLASMA,          // Example true to Turn ON PLASMA Function
+      int                       HVAC_CLEAN_MODE,      // Example false 
+      int                       HVAC_ISEE,            // Example False
+      int                       OFF                   // Example false to Turn ON HVAC / true to request to turn off
+    );
+ * sendHvacMitsubishiFD Not tested, i don't have this material -- if someone can confirm then please push a note.
  */
 
 #include "IRremote2.h"
@@ -27,12 +41,12 @@ void setup()
 }
 
 void loop() {
-#define  HVAC_MITSUBISHI_SKETCH;
-
-
+#define HVAC_MITSUBISHI_SKETCH
+//#define HVAC_PANASONIC_SKETCH
 
   #ifdef HVAC_MITSUBISHI_SKETCH
-  if (Serial.read() != -1) {
+  Serial.println("HVAC_MITSUBISHI_SKETCH selected");
+  if (Serial.read() != -1) {  
       Serial.println("Switch OFF and Wait 15 Seconds to send ON command.");
       irsend.sendHvacMitsubishi(HVAC_HOT, 21, FAN_SPEED_AUTO, VANNE_AUTO_MOVE, true);
       delay(15000);    
@@ -50,50 +64,39 @@ void loop() {
       irsend.sendHvacMitsubishi(HVAC_HOT, 21, FAN_SPEED_AUTO, VANNE_AUTO_MOVE, true);
       Serial.println("Turn OFF\nCommand sent. End Of Sketch");
       delay(15000); // Let HVAC sleeping
-
   }
  #endif
  
  #ifdef HVAC_PANASONIC_SKETCH
+ Serial.println("HVAC_PANASONIC_SKETCH selected");
   if (Serial.read() != -1) {
     
       Serial.println("Set HVAC in Hot mode with temp at 25 without switching the HVAC power.");
       irsend.sendHvacPanasonic(HVAC_HOT, 25, FAN_SPEED_AUTO, VANNE_AUTO, NORMAL, false);
       delay(10000);
-
       Serial.println("Switching the HVAC power.");
       irsend.sendHvacPanasonic(HVAC_HOT, 25, FAN_SPEED_AUTO, VANNE_AUTO, NORMAL, true);
       delay(10000);
-
       Serial.println("Play with Vane in position 1.");
       irsend.sendHvacPanasonic(HVAC_HOT, 25, FAN_SPEED_AUTO, VANNE_H1, NORMAL, false);
       delay(10000);
-
       Serial.println("Play with Vane in position 2.");
       irsend.sendHvacPanasonic(HVAC_HOT, 25, FAN_SPEED_AUTO, VANNE_H2, NORMAL, false);
       delay(10000);
-
       Serial.println("Play with Vane in position 3.");
       irsend.sendHvacPanasonic(HVAC_HOT, 25, FAN_SPEED_AUTO, VANNE_H3, NORMAL, false);
       delay(10000);
-
       Serial.println("Play with Vane in position 4.");
       irsend.sendHvacPanasonic(HVAC_HOT, 25, FAN_SPEED_AUTO, VANNE_H4, NORMAL, false);
       delay(10000);
-
       Serial.println("Play with Vane in position 5.");
       irsend.sendHvacPanasonic(HVAC_HOT, 25, FAN_SPEED_AUTO, VANNE_H5, NORMAL, false);
       delay(10000);
- 
       Serial.println("Switching the HVAC OFF.");
       irsend.sendHvacPanasonic(HVAC_HOT, 25, FAN_SPEED_AUTO, VANNE_AUTO, NORMAL, true);
       delay(10000);
-      
-      Serial.println("End of PNANASONIC Sketch.");
-   
-  }
-
+       Serial.println("End of PNANASONIC Sketch.");
+ }
  #endif
- 
- 
+  
 }
