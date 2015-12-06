@@ -14,7 +14,7 @@ Recently, an anonymous and humble contributor provided information on unknow par
 
 #Overview of Protocol and features managed
 ## Mitsubishi Inverter HVAC
-
+Now there is two kind of function you may use to control HVAC from mitsubishi. Thanks to a a anonymous contributor i get opportunity to complete the protocol. Basically he got much more option than mine HVAC. Nevertheless, just a warning, id did not had possibilities to check all this new features then do not hesitate to report issue. Enjoy !
 the function to send configuration is
 ```
 void sendHvacMitsubishi(
@@ -24,6 +24,21 @@ void sendHvacMitsubishi(
  HvacVanneMode             HVAC_VanneMode,      // Example VANNE_AUTO_MOVE  HvacMitsubishiVanneMode
  int                       OFF                  // Example false (Request Turn On = False)
 );
+```
+new function with enhanced function:
+```
+void sendHvacMitsubishiFD(
+ HvacMode                  HVAC_Mode,           // Example HVAC_HOT  HvacMitsubishiMode
+ int                       HVAC_Temp,           // Example 21  (°c)
+ HvacFanMode               HVAC_FanMode,        // Example FAN_SPEED_AUTO  HvacMitsubishiFanMode
+ HvacVanneMode             HVAC_VanneMode,      // Example VANNE_AUTO_MOVE  HvacMitsubishiVanneMode
+ HvacAreaMode              HVAC_AreaMode,       // Example AREA_AUTO
+ HvacWideVanneMode         HVAC_WideMode,       // Example WIDE_MIDDLE
+ int                       HVAC_PLASMA,          // Example true to Turn ON PLASMA Function
+ int                       HVAC_CLEAN_MODE,      // Example false 
+ int                       HVAC_ISEE,            // Example False
+ int                       OFF                   // Example false to Turn ON HVAC / true to request to turn off
+ );
 ```
 Functions confirmed in MSZ-GE and MFZ modules from Mitsubishi.
 
