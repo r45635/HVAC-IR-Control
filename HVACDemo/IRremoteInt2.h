@@ -145,6 +145,17 @@
 #define HVAC_MITSUBISHI_RPT_SPACE   17100 // Above original iremote limit
 
 
+// HVAC TOSHIBA_
+#define HVAC_TOSHIBA_HDR_MARK    4400
+#define HVAC_TOSHIBA_HDR_SPACE   4300
+#define HVAC_TOSHIBA_BIT_MARK    543
+#define HVAC_TOSHIBA_ONE_SPACE   1623
+#define HVAC_MISTUBISHI_ZERO_SPACE  472
+#define HVAC_TOSHIBA_RPT_MARK    440
+#define HVAC_TOSHIBA_RPT_SPACE   7048 // Above original iremote limit
+
+
+
 
 //#define MITSUBISHI_ZERO_MARK  750 // 17*50-100
 // #define MITSUBISHI_DOUBLE_SPACE_USECS  800  // usually ssee 713 - not using ticks as get number wrapround

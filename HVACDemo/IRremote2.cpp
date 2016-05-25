@@ -648,6 +648,122 @@ void IRsend::sendHvacMitsubishiFD(
 }
 
 
+****************************************************************************
+/* Send IR command to Toshiba HVAC - sendHvacToshiba
+/***************************************************************************/
+void sendHvacToshiba(
+  HvacMode                HVAC_Mode,           // Example HVAC_HOT  
+  int                     HVAC_Temp,           // Example 21  (°c)
+  HvacFanMode             HVAC_FanMode,        // Example FAN_SPEED_AUTO  
+  int                     OFF                  // Example false
+)
+{
+ 
+#define HVAC_TOSHIBA_DATALEN 9
+#define  HVAC_TOSHIBA_DEBUG;  // Un comment to access DEBUG information through Serial Interface
+
+  byte mask = 1; //our bitmask
+  //﻿F20D03FC0150000051
+  byte data[HVAC_TOSHIBA_DATALEN] = { 0xF2, 0x0D, 0x03, 0xFC, 0x01, 0x00, 0x00, 0x00, 0x00 };
+  // data array is a valid trame, only byte to be chnaged will be updated.
+
+  byte i;
+
+#ifdef HVAC_TOSHIBA_DEBUG
+  Serial.println("Packet to send: ");
+  for (i = 0; i < HVAC_TOSHIBA_DATALEN; i++) {
+    Serial.print("_");
+    Serial.print(data[i], HEX);
+  }
+  Serial.println(".");
+#endif
+
+  data[6] = 0x00;
+  // Byte 7 - Mode
+  switch (HVAC_Mode)
+  {
+    case HVAC_HOT:   data[6] = (byte) B00000011; break;
+    case HVAC_COLD:  data[6] = (byte) B00000001; break;
+    case HVAC_DRY:   data[6] = (byte) B00000010; break;
+    case HVAC_AUTO:  data[6] = (byte) B00000000; break;
+    default: break;
+  }
+
+
+  // Byte 7 - On / Off
+  if (OFF) {
+    data[6] = (byte) 0x07; // Turn OFF HVAC
+  } else {
+     // Turn ON HVAC (default)
+  }
+
+  // Byte 6 - Temperature
+  // Check Min Max For Hot Mode
+  byte Temp;
+  if (HVAC_Temp > 30) { Temp = 30;}
+  else if (HVAC_Temp < 17) { Temp = 17; } 
+  else { Temp = HVAC_Temp; };
+  data[5] = (byte) Temp - 17<<4;
+
+  // Byte 10 - FAN / VANNE
+  switch (HVAC_FanMode)
+  {
+    case FAN_SPEED_1:       data[6] = data[6] | (byte) B01000000; break;
+    case FAN_SPEED_2:       data[6] = data[6] | (byte) B01100000; break;
+    case FAN_SPEED_3:       data[6] = data[6] | (byte) B10000000; break;
+    case FAN_SPEED_4:       data[6] = data[6] | (byte) B10100000; break;
+    case FAN_SPEED_5:       data[6] = data[6] | (byte) B11000000; break; 
+    case FAN_SPEED_AUTO:    data[6] = data[6] | (byte) B00000000; break;
+    case FAN_SPEED_SILENT:  data[6] = data[6] | (byte) B00000000; break;//No FAN speed SILENT for TOSHIBA so it is consider as Speed AUTO
+    default: break;
+  }
+
+  // Byte 9 - CRC
+  data[8] = 0;
+  for (i = 0; i < HVAC_TOSHIBA_DATALEN - 1; i++) {
+    data[HVAC_TOSHIBA_DATALEN-1] = (byte) data[i] ^ data[HVAC_TOSHIBA_DATALEN -1];  // CRC is a simple bits addition
+  }
+
+#ifdef HVAC_TOSHIBA_DEBUG
+  Serial.println("Packet to send: ");
+  for (i = 0; i < HVAC_TOSHIBA_DATALEN; i++) {
+    Serial.print("_"); Serial.print(data[i], HEX);
+  }
+  Serial.println(".");
+  for (i = 0; i < HVAC_TOSHIBA_DATALEN ; i++) {
+    Serial.print(data[i], BIN); Serial.print(" ");
+  }
+  Serial.println(".");
+#endif
+
+  enableIROut(38);  // 38khz
+  space(0);
+  for (int j = 0; j < 2; j++) {  // For Mitsubishi IR protocol we have to send two time the packet data
+    // Header for the Packet
+    mark(HVAC_TOSHIBA_HDR_MARK);
+    space(HVAC_TOSHIBA_HDR_SPACE);
+    for (i = 0; i < HVAC_TOSHIBA_DATALEN; i++) {
+      // Send all Bits from Byte Data in Reverse Order
+      for (mask = 10000000; mask > 0; mask >>= 1) { //iterate through bit mask
+        if (data[i] & mask) { // Bit ONE
+          mark(HVAC_TOSHIBA_BIT_MARK);
+          space(HVAC_TOSHIBA_ONE_SPACE);
+        }
+        else { // Bit ZERO
+          mark(HVAC_TOSHIBA_BIT_MARK);
+          space(HVAC_MISTUBISHI_ZERO_SPACE);
+        }
+        //Next bits
+      }
+    }
+    // End of Packet and retransmission of the Packet
+    mark(HVAC_TOSHIBA_RPT_MARK);
+    space(HVAC_TOSHIBA_RPT_SPACE);
+    space(0); // Just to be sure
+  }
+}
+
+
 
 void IRsend::sendJVC(unsigned long data, int nbits, int repeat)
 {
