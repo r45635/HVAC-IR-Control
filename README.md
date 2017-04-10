@@ -1,21 +1,36 @@
 
-#HVAC IR Control
+# HVAC IR Control
 
-##Introduction
-*HVAC IR Control aims to facilitate control of your HVAC emulating the IR code from an Arduino. The Do It Your Self has no limitation except the time to spent on it. I hope this repository can accelerate your development espcecially if you use Mitsubishi HVAC. Panasonic HVAC support has been added too thanks to another contributor. Should you wants to add another protocol data information releated to new brand or model then feel free to contact us*
+## Introduction
 
-##Project background
-I started to use sketch with an Arduino associated to IR emitter and IR Receiver. radpidly i stated that library available do not covers HVAC modules. A way to progress was to use a software named AnalysIR, therefore i ordered a license for this tool. Indeed this tool was perfectly doing the job of identifying the IR trame my IR remote was sending. Nevertheless, even if the data collected was able to identify bits values, the packet of data provided to use with the different existing libraries was a set of mark and space interger values. For an Arduino it's a lot of data only for one command to process in IR. Due to this limitation of memory, i started to think about coding a function using the Hex values of the trame decoded by AnalysisIR instead of having to manage mark & space huge array of data. Without AnalysisIR software, it never have been possible for me to achieve what i did. Thanks Chris ;). 
-My first code was able to take in input the hex data of the trame decoded and setting the diffrent header pulse period i went through a loop of each bit in order to produce the correct mark and space sequences. I identified quickly that the packet of data was in fact a specific packet data sent twice. After this dicovery i started to look at the values of the data from this packet. I was entering in the reverse engineering of the Mitsubishi trame... In order to understand the procol, i started to log different configurations and the packet data associated. I've used an Excel file to start to dig into the differents bits changing folloing the configurations. Hopefully the CRC was not  complex. I let this excel debug file in the repository. Might be they can be helpul for others.
-Finally the packet data has been decoded at least for the part of my HVAC system. 
-The protocol decoded, i decided to use IR-Remote to add specific functions to control a Mitsubishi HVAC. Simply pass the parameters and the IR trame is compiled and send to the HVAC. No more problem of memory. A colleague join this work having on his side a PANASONIC HVAC. The same methods has been applied to understand the panansonic protocol. Like for the Mitsubishi HVAC, the Panasonic HVAC functions have been added to this git, still based on a modified IR Remote.
+HVAC IR Control aims to facilitate control of your Heating, Ventilation and Air-Conditioning system (HVAC) by emulating the IR code usually sent via remote control through an Arduino. The Do-It-Your-Self has no limitation except the time to spent on it.
 
-Recently, an anonymous and humble contributor provided information on unknow parts of the Mitsubishi protocol. All new fields decoded have been added to the Protocol Information data. The code has not been modified yet. 
+I hope this repository can accelerate your development especially if you use a Mitsubishi HVAC. Panasonic HVAC support has been added too thanks to another contributor. Should you want to add another protocol related to an additional brand or model then feel free to contact us.
 
-#Overview of Protocol and features managed
+## Project background
+
+I started to use sketch with an Arduino associated to IR emitter and IR Receiver. I rapidly found that libraries available do not cover HVAC modules. A way to progress was to use a piece of software called AnalysIR. I ordered a license for this tool and indeed it was perfectly suited to doing the job of identifying the IR trame (TRAnsmission of MEssages) my IR remote was sending.
+
+Nevertheless, even if the data collected was able to identify bits values, the packet of data provided to use with the different existing libraries was a set of mark and space integer values. For an Arduino that's a lot of data only for one command to process in IR. Due to this limitation of memory, I started to think about coding a function using the Hex values of the trame decoded by AnalysisIR instead of having to manually mark & space huge array of data. Without AnalysisIR software, it never have been possible for me to achieve what I did. Thanks Chris ;).
+
+My first code was able to take in input of the hex data of the trame decoded. Setting the different header pulse periods, I went through a loop of each bit in order to produce the correct mark and space sequences. I identified quickly that the packet of data was in fact a specific packet data sent twice. After this discovery I started to look at the values of the data from this packet. I was now reverse engineering of the Mitsubishi trame. In order to understand the protocol, I started to log different configurations and the packet data associated. I used an Excel file to dig into the different bits that were changing and follow the configurations. Fortunately the CRC was not complex. I let this excel debug file in the repository. It might that it's helpull for others.
+
+Finally the packet data has been partially decoded  (for the bits my HVAC system supports).
+
+The protocol decoded, I decided to use IR-Remote to add specific functions to control a Mitsubishi HVAC. Simply pass the parameters and the IR trame is compiled and send to the HVAC. No more problems running out of memory. A colleague (who had a PANASONIC HVAC) joined this work and applied the same methods to understand the Panasonic protocol. As per the Mitsubishi HVAC, the Panasonic HVAC functions have now been added to this repository, still based on a modified IR Remote.
+
+Recently, an anonymous and humble contributor provided information on previously unknown parts of the Mitsubishi protocol. All new fields decoded have been added to the Protocol Information data. The code provided has not been modified.
+
+# Overview of Protocol and features managed
+
 ## Mitsubishi Inverter HVAC
-Now there is two kind of function you may use to control HVAC from mitsubishi. Thanks to a a anonymous contributor i get opportunity to complete the protocol. Basically he got much more option than mine HVAC. Nevertheless, just a warning, id did not had possibilities to check all this new features then do not hesitate to report issue. Enjoy !
-the function to send configuration is
+
+There are now two sets of functions you may use to control HVAC from Mitsubishi.
+
+Thanks to a a anonymous contributor I had the opportunity to complete the protocol. Their system has many more options/features than mine. Nevertheless, just by way of warning, I have not had the chance to check all this new features. If you find any issues, feel free to report. Enjoy!
+
+The function to send configuration is:
+
 ```
 void sendHvacMitsubishi(
  HvacMode                  HVAC_Mode,           // Example HVAC_HOT  HvacMitsubishiMode
@@ -25,7 +40,9 @@ void sendHvacMitsubishi(
  int                       OFF                  // Example false (Request Turn On = False)
 );
 ```
-new function with enhanced function:
+
+The new function with enhanced functions:
+
 ```
 void sendHvacMitsubishiFD(
  HvacMode                  HVAC_Mode,           // Example HVAC_HOT  HvacMitsubishiMode
@@ -35,16 +52,18 @@ void sendHvacMitsubishiFD(
  HvacAreaMode              HVAC_AreaMode,       // Example AREA_AUTO
  HvacWideVanneMode         HVAC_WideMode,       // Example WIDE_MIDDLE
  int                       HVAC_PLASMA,          // Example true to Turn ON PLASMA Function
- int                       HVAC_CLEAN_MODE,      // Example false 
+ int                       HVAC_CLEAN_MODE,      // Example false
  int                       HVAC_ISEE,            // Example False
  int                       OFF                   // Example false to Turn ON HVAC / true to request to turn off
  );
 ```
+
 Functions confirmed in MSZ-GE and MFZ modules from Mitsubishi.
 
 ## Panasonic HVAC
 
-the function to send configuration is
+The function to send configuration is:
+
 ```
 void sendHvacPanasonic(
  HvacMode                  HVAC_Mode,           // Example HVAC_HOT  HvacPanasonicMode
@@ -57,7 +76,8 @@ void sendHvacPanasonic(
 ```
 ## Toshiba HVAC
 
-the function to send configuration is
+The function to send configuration is:
+
 ```
 void sendHvacToshiba(
  HvacMode                  HVAC_Mode,           // Example HVAC_HOT  
