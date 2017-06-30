@@ -1,26 +1,12 @@
 # Python port for RPI3
-# Ericmas001 - 2017-06-30 - https://github.com/Ericmas001/HVAC-IR-Control
+# Eric Masse (Ericmas001) - 2017-06-30
+# https://github.com/Ericmas001/HVAC-IR-Control
+
 # From original: https://github.com/r45635/HVAC-IR-Control
-#// 10th, January 2016 - Fun with ESP8266
-#// (c)  Vincent Cruvellier
-#//  The Sketch use an ESP 8266 to read DHT sensor Values, Send HVAC IR command and sleep.
-#//
-#// I have used ESP 8266 ESP-12 Module
-#//  the IR led Emitter should be drive from a 5V current. You can power the IR LED from the 3.3V but the 
-#//  emission distance will be considerably reduced. The bes is to drive the IR led from 5V and drive through 
-#//  a transitor the led emission (Signal). Caution a lot of IR-Led module do not have real Signal drive.
-#//  Indeed, lot of them have Signal directly connected to VDD.
-#//
-#// Sketch Exemple with ESP8266 + HVAC IR Emission Capability + DHT Reading
-#// Sketch has been very simplified to not use IR-Remote lib but just what we need for this example
-#//   Mean we need just to be able to send HVAC IR command.
-#// ESP Deep sleep Feauture is used on this sketch. That requires ESP/RST connected to ESP/GPIO16 
-#//   in order to wakeup from the deep sleep.
-#//
-#// Hardware Connection
-#//  IR LED SIGNAL => ESP/GPIO_4
-#//  DHT SIGNAL => ESP/GPIO_5
-#// RESET => ESP/GPIO_16
+# (c)  Vincent Cruvellier - 10th, January 2016 - Fun with ESP8266
+
+import ir_sender
+import pigpio
 
 class PowerMode:
     PowerOff = 0b00000000   # 0x00      0000 0000        0
