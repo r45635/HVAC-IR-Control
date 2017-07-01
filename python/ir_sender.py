@@ -8,6 +8,12 @@
 import ctypes
 import time
 
+class LogLevel:
+    ErrorsOnly = 0
+    Minimal = 2
+    Normal = 5
+    Verbose = 10
+
 # This is the struct required by pigpio library.
 # We store the individual pulses and their duration here. (In an array of these structs.)
 class Pulses_struct(ctypes.Structure):
@@ -18,12 +24,17 @@ class Pulses_struct(ctypes.Structure):
 # Since both NEC and RC-5 protocols use the same method for generating waveform,
 # it can be put in a separate class and called from both protocol's classes.
 class Wave_generator():
-    def __init__(self,protocol):
+    def __init__(self, protocol, log_level = LogLevel.Minimal):
         self.protocol = protocol
+        self.log_level = log_level
         MAX_PULSES = 12000 # from pigpio.h
         Pulses_array = Pulses_struct * MAX_PULSES
         self.pulses = Pulses_array()
         self.pulse_count = 0
+
+    def __log(self, min_log_level, message):
+        if min_log_level <= self.log_level:
+            print(message)
 
     def add_pulse(self, gpioOn, gpioOff, usDelay):
         self.pulses[self.pulse_count].gpioOn = gpioOn
@@ -33,10 +44,12 @@ class Wave_generator():
 
     # Pull the specified output pin low
     def zero(self, duration):
+        self.__log(LogLevel.Verbose, "SPACE\t%s" % duration)
         self.add_pulse(0, 1 << self.protocol.master.gpio_pin, duration)
 
     # Protocol-agnostic square wave generator
     def one(self, duration):
+        self.__log(LogLevel.Verbose, " MARK\t%s" % duration)
         period_time = 1000000.0 / self.protocol.frequency
         on_duration = int(round(period_time * self.protocol.duty_cycle))
         off_duration = int(round(period_time * (1.0 - self.protocol.duty_cycle)))
@@ -54,6 +67,7 @@ class Wave_generator():
 class NEC():
     def __init__(self,
                 master,
+                log_level = LogLevel.Minimal,
                 frequency=38000,
                 duty_cycle=0.33,
                 leading_pulse_duration=9000,
@@ -65,7 +79,8 @@ class NEC():
                 trailing_pulse_duration = 562,
                 trailing_gap_duration = 0):
         self.master = master
-        self.wave_generator = Wave_generator(self)
+        self.log_level = log_level
+        self.wave_generator = Wave_generator(self, log_level)
         self.frequency = frequency # in Hz, 38000 per specification
         self.duty_cycle = duty_cycle # duty cycle of high state pulse
         # Durations of high pulse and low "gap".
@@ -79,17 +94,21 @@ class NEC():
         self.zero_gap_duration = zero_gap_duration # in microseconds, 562 per specification
         self.trailing_pulse_duration = trailing_pulse_duration # trailing 562 microseconds pulse, some remotes send it, some don't
         self.trailing_gap_duration = trailing_gap_duration # trailing space
-        print("NEC protocol initialized")
+        self.__log(LogLevel.Minimal, "NEC protocol initialized")
+
+    def __log(self, min_log_level, message):
+        if min_log_level <= self.log_level:
+            print(message)
 
     # Send AGC burst before transmission
     def send_agc(self):
-        print("Sending AGC burst")
+        self.__log(LogLevel.Normal, "Sending AGC burst")
         self.wave_generator.one(self.leading_pulse_duration)
         self.wave_generator.zero(self.leading_gap_duration)
 
     # Trailing pulse is just a burst with the duration of standard pulse.
     def send_trailing_pulse(self):
-        print("Sending trailing pulse")
+        self.__log(LogLevel.Normal, "Sending trailing pulse")
         self.wave_generator.one(self.trailing_pulse_duration)
         if self.trailing_gap_duration > 0:
             self.wave_generator.zero(self.trailing_gap_duration)
@@ -99,13 +118,14 @@ class NEC():
     def process_code(self, ircode):
         if (self.leading_pulse_duration > 0) or (self.leading_gap_duration > 0):
             self.send_agc()
+        self.__log(LogLevel.Normal, "Sending data")
         for i in ircode:
             if i == "0":
                 self.zero()
             elif i == "1":
                 self.one()
             else:
-                print("ERROR! Non-binary digit!")
+                self.__log(LogLevel.ErrorsOnly, "ERROR! Non-binary digit!")
                 return 1
         if self.trailing_pulse_duration > 0:
             self.send_trailing_pulse()
@@ -114,11 +134,13 @@ class NEC():
     # Generate zero or one in NEC protocol
     # Zero is represented by a pulse and a gap of the same length
     def zero(self):
+        self.__log(LogLevel.Normal, "ZERO")
         self.wave_generator.one(self.zero_pulse_duration)
         self.wave_generator.zero(self.zero_gap_duration)
 
     # One is represented by a pulse and a gap three times longer than the pulse
     def one(self):
+        self.__log(LogLevel.Normal, "ONE")
         self.wave_generator.one(self.one_pulse_duration)
         self.wave_generator.zero(self.one_gap_duration)
 
@@ -128,11 +150,13 @@ class NEC():
 class RC5():
     def __init__(self,
                 master,
+                log_level = LogLevel.Minimal,
                 frequency=36000,
                 duty_cycle=0.33,
                 one_duration=889,
                 zero_duration=889):
         self.master = master
+        self.log_level = log_level
         self.wave_generator = Wave_generator(self)
         self.frequency = frequency # in Hz, 36000 per specification
         self.duty_cycle = duty_cycle # duty cycle of high state pulse
@@ -141,7 +165,11 @@ class RC5():
         # that any given TV will follow the protocol specification.
         self.one_duration = one_duration # in microseconds, 889 per specification
         self.zero_duration = zero_duration # in microseconds, 889 per specification
-        print("RC-5 protocol initialized")
+        self.__log(LogLevel.Minimal, "RC-5 protocol initialized")
+
+    def __log(self, min_log_level, message):
+        if min_log_level <= self.log_level:
+            print(message)
 
     # This function is processing IR code. Leaves room for possible manipulation
     # of the code before processing it.
@@ -152,7 +180,7 @@ class RC5():
             elif i == "1":
                 self.one()
             else:
-                print("ERROR! Non-binary digit!")
+                self.__log(LogLevel.ErrorsOnly, "ERROR! Non-binary digit!")
                 return 1
         return 0
 
@@ -173,17 +201,23 @@ class RC5():
 # i.e. instead of trying to figure out the protocol, simply define bit lengths and send them all here.
 class RAW():
     def __init__(self,
-                master,
+                master, 
+                log_level = LogLevel.Minimal,
                 frequency=36000,
                 duty_cycle=0.33,
                 one_duration=520,
                 zero_duration=520):
         self.master = master
+        self.log_level = log_level
         self.wave_generator = Wave_generator(self)
         self.frequency = frequency # in Hz
         self.duty_cycle = duty_cycle # duty cycle of high state pulse
         self.one_duration = one_duration # in microseconds
         self.zero_duration = zero_duration # in microseconds
+
+    def __log(self, min_log_level, message):
+        if min_log_level <= self.log_level:
+            print(message)
 
     def process_code(self, ircode):
         for i in ircode:
@@ -192,7 +226,7 @@ class RAW():
             elif i == "1":
                 self.one()
             else:
-                print("ERROR! Non-binary digit!")
+                self.__log(LogLevel.ErrorsOnly, "ERROR! Non-binary digit!")
                 return 1
         return 0
 
@@ -205,81 +239,91 @@ class RAW():
     def one(self):
         self.wave_generator.one(self.one_duration)
 
-
 class IrSender():
-    def __init__(self, gpio_pin, protocol, protocol_config):
-        print("Starting IR")
-        print("Loading libpigpio.so")
+    def __init__(self, gpio_pin, protocol, protocol_config, log_level = LogLevel.Minimal):
+        self.log_level = log_level
+        
+        self.__log(LogLevel.Minimal, "Starting IR")
+        self.__log(LogLevel.Normal, "Loading libpigpio.so")
         self.pigpio = ctypes.CDLL('libpigpio.so')
-        print("Initializing pigpio")
+        self.__log(LogLevel.Normal, "Initializing pigpio")
         PI_OUTPUT = 1 # from pigpio.h
         self.pigpio.gpioInitialise()
         self.gpio_pin = gpio_pin
-        print("Configuring pin %d as output" % self.gpio_pin)
+        self.__log(LogLevel.Normal, "Configuring pin %d as output" % self.gpio_pin)
         self.pigpio.gpioSetMode(self.gpio_pin, PI_OUTPUT) # pin 17 is used in LIRC by default
-        print("Initializing protocol")
+        self.__log(LogLevel.Normal, "Initializing protocol")
         if protocol == "NEC":
-            self.protocol = NEC(self, **protocol_config)
+            self.protocol = NEC(self, log_level, **protocol_config)
         elif protocol == "RC-5":
-            self.protocol = RC5(self, **protocol_config)
+            self.protocol = RC5(self, log_level, **protocol_config)
         elif protocol == "RAW":
-            self.protocol = RAW(self, **protocol_config)
+            self.protocol = RAW(self, log_level, **protocol_config)
         else:
-            print("Protocol not specified! Exiting...")
+            self.__log(LogLevel.ErrorsOnly, "Protocol not specified! Exiting...")
             return 1
-        print("IR ready")
+        self.__log(LogLevel.Minimal, "IR ready")
+
+    def __log(self, min_log_level, message):
+        if min_log_level <= self.log_level:
+            print(message)
 
     # send_code takes care of sending the processed IR code to pigpio.
     # IR code itself is processed and converted to pigpio structs by protocol's classes.
-    def send_code(self, ircode):
-        print("Processing IR code: %s" % ircode)
-        code = self.protocol.process_code(ircode)
-        if code != 0:
-            print("Error in processing IR code!")
-            return 1
+    def send_code(self, ircode, nb = 1):
+        self.__log(LogLevel.Normal, "Processing IR code: %s" % ' '.join([ ircode[i:i+8] for i in range(0, len(ircode), 8) ]))
+        for _ in range(0, nb):
+            code = self.protocol.process_code(ircode)
+            if code != 0:
+                self.__log(LogLevel.ErrorsOnly, "Error in processing IR code!")
+                return 1
         clear = self.pigpio.gpioWaveClear()
         if clear != 0:
-            print("Error in clearing wave!")
+            self.__log(LogLevel.ErrorsOnly, "Error in clearing wave!")
             return 1
         pulses = self.pigpio.gpioWaveAddGeneric(self.protocol.wave_generator.pulse_count, self.protocol.wave_generator.pulses)
         if pulses < 0:
-            print("Error in adding wave!")
+            self.__log(LogLevel.ErrorsOnly, "Error in adding wave!")
             return 1
         wave_id = self.pigpio.gpioWaveCreate()
         # Unlike the C implementation, in Python the wave_id seems to always be 0.
         if wave_id >= 0:
-            print("Sending wave...")
+            self.__log(LogLevel.Normal, "Sending wave...")
             result = self.pigpio.gpioWaveTxSend(wave_id, 0)
             if result >= 0:
-                print("Success! (result: %d)" % result)
+                self.__log(LogLevel.Normal, "Success! (result: %d)" % result)
             else:
-                print("Error! (result: %d)" % result)
+                self.__log(LogLevel.ErrorsOnly, "Error sending wave! (result: %d)" % result)
                 return 1
         else:
-            print("Error creating wave: %d" % wave_id)
+            self.__log(LogLevel.ErrorsOnly, "Error creating wave: %d" % wave_id)
             return 1
         while self.pigpio.gpioWaveTxBusy():
             time.sleep(0.1)
-        print("Deleting wave")
+        self.__log(LogLevel.Normal, "Deleting wave")
         self.pigpio.gpioWaveDelete(wave_id)
+        self.__log(LogLevel.Minimal, "Terminating pigpio")
+        self.pigpio.gpioTerminate()
 
-    def send_data(self, data, maxMask):
+    def send_data(self, data, maxMask, mustInvert, nb = 1):
         code = []
-        print("Sending data:")
-        print((' '.join('{:x}'.format(d) for d in data)).upper())
+        self.__log(LogLevel.Minimal, "Sending data %s:" % ("inverted " if mustInvert else ""))
+        self.__log(LogLevel.Minimal, (' '.join('{:x}'.format(d) for d in data)).upper())
         # Send all Bits from Byte Data in Reverse Order
-        for i in xrange(len(data)-1, -1, -1):
+        for i in xrange(0, len(data)):
+            idx = i if mustInvert else (len(data) - i - 1)
             mask = 1
             while mask < maxMask and mask > 0:
-                if data[i] & mask:
-                    code = ['1'] + code
+                if mustInvert:
+                    if data[idx] & mask:
+                        code = code + ['1']
+                    else:
+                        code = code + ['0']
                 else:
-                    code = ['0'] + code
+                    if data[idx] & mask:
+                        code = ['1'] + code
+                    else:
+                        code = ['0'] + code
                 mask = mask << 1
 
-        self.send_code(''.join(code))
-
-
-    def terminate(self):
-        print("Terminating pigpio")
-        self.pigpio.gpioTerminate()
+        self.send_code(''.join(code), nb)

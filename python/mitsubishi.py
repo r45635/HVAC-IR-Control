@@ -84,7 +84,8 @@ class Mitsubishi:
     """
     Mitsubishi
     """
-    def __init__(self, gpio_pin):
+    def __init__(self, gpio_pin, log_level = ir_sender.LogLevel.Minimal):
+        self.log_level = log_level
         self.gpio_pin = gpio_pin
 
     def power_off(self):
@@ -119,7 +120,7 @@ class Mitsubishi:
             zero_pulse_duration=Delay.BitMark,
             zero_gap_duration=Delay.ZeroSpace,
             trailing_pulse_duration=Delay.RptMark,
-            trailing_gap_duration=Delay.RptSpace))
+            trailing_gap_duration=Delay.RptSpace), self.log_level)
 
         # data array is a valid trame, only byte to be chnaged will be updated.
         data = [0x23, 0xCB, 0x26, 0x01, 0x00, 0x20,
@@ -134,8 +135,4 @@ class Mitsubishi:
         # CRC is a simple bits addition
         data[Index.CRC] = sum(data[:-1]) % (Constants.MaxMask + 1) # sum every bytes but the last one
 
-        # transmit packet more than once
-        for _ in range(0, Constants.NbPackets):
-            sender.send_data(data, Constants.MaxMask)
-
-        sender.terminate()
+        sender.send_data(data, Constants.MaxMask, True, Constants.NbPackets)
