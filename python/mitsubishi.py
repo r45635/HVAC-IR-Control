@@ -59,13 +59,6 @@ class Delay:
     RptMark = 440
     RptSpace = 17100
 
-class Temperature:
-    """
-    Temperature
-    """
-    Max = 31
-    Min = 16
-
 class Index:
     """
     Index
@@ -122,7 +115,7 @@ class Mitsubishi:
 
         data[Index.Power] = power_mode
         data[Index.Climate] = climate_mode
-        data[Index.Temperature] = temperature - 16
+        data[Index.Temperature] = max(Constants.MinTemp, min(Constants.MaxTemp, temperature)) - 16
         data[Index.FanVanne] = fan_mode | wide_vanne_mode
 
         # CRC is a simple bits addition
