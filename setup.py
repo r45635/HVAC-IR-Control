@@ -9,7 +9,7 @@ setup(
     name='hvac_ircontrol',
     package_dir = {'': 'python'},
     version=__version__,
-    packages=find_packages(srcfile('python')),
+    packages=find_packages('./python'),
     namespace_packages=['hvac_ircontrol'],
     url='',
     license='',
