@@ -62,7 +62,8 @@ class NEC():
                 one_gap_duration = 1686,
                 zero_pulse_duration = 562,
                 zero_gap_duration = 562,
-                trailing_pulse_duration = 562):
+                trailing_pulse_duration = 562,
+                trailing_gap_duration = 0):
         self.master = master
         self.wave_generator = Wave_generator(self)
         self.frequency = frequency # in Hz, 38000 per specification
@@ -77,6 +78,7 @@ class NEC():
         self.zero_pulse_duration = zero_pulse_duration # in microseconds, 562 per specification
         self.zero_gap_duration = zero_gap_duration # in microseconds, 562 per specification
         self.trailing_pulse_duration = trailing_pulse_duration # trailing 562 microseconds pulse, some remotes send it, some don't
+        self.trailing_gap_duration = trailing_gap_duration # trailing space
         print("NEC protocol initialized")
 
     # Send AGC burst before transmission
@@ -89,6 +91,8 @@ class NEC():
     def send_trailing_pulse(self):
         print("Sending trailing pulse")
         self.wave_generator.one(self.trailing_pulse_duration)
+        if self.trailing_gap_duration > 0:
+            self.wave_generator.zero(self.trailing_gap_duration)
 
     # This function is processing IR code. Leaves room for possible manipulation
     # of the code before processing it.
@@ -258,8 +262,6 @@ class IrSender():
             time.sleep(0.1)
         print("Deleting wave")
         self.pigpio.gpioWaveDelete(wave_id)
-        print("Terminating pigpio")
-        self.pigpio.gpioTerminate()
 
     def send_data(self, data, maxMask):
         code = []
@@ -276,3 +278,8 @@ class IrSender():
                 mask = mask << 1
 
         self.send_code(''.join(code))
+
+
+    def terminate(self):
+        print("Terminating pigpio")
+        self.pigpio.gpioTerminate()

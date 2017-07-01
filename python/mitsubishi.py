@@ -118,7 +118,8 @@ class Mitsubishi:
             one_gap_duration=Delay.OneSpace,
             zero_pulse_duration=Delay.BitMark,
             zero_gap_duration=Delay.ZeroSpace,
-            trailing_pulse_duration=Delay.RptMark))
+            trailing_pulse_duration=Delay.RptMark,
+            trailing_gap_duration=Delay.RptSpace))
 
         # data array is a valid trame, only byte to be chnaged will be updated.
         data = [0x23, 0xCB, 0x26, 0x01, 0x00, 0x20,
@@ -131,8 +132,10 @@ class Mitsubishi:
         data[Index.FanVanne] = fan_mode | wide_vanne_mode
 
         # CRC is a simple bits addition
-        data[Index.CRC] = sum(data[:-1]) # sum every bytes but the last one
+        data[Index.CRC] = sum(data[:-1]) % (Constants.MaxMask + 1) # sum every bytes but the last one
 
         # transmit packet more than once
         for _ in range(0, Constants.NbPackets):
             sender.send_data(data, Constants.MaxMask)
+
+        sender.terminate()
