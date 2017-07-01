@@ -9,16 +9,25 @@ import ir_sender
 import pigpio
 
 class PowerMode:
+    """
+    PowerMode
+    """
     PowerOff = 0b00000000   # 0x00      0000 0000        0
     PowerOn = 0x00100000    # 0x20      0010 0000       32
 
 class ClimateMode:
+    """
+    ClimateMode
+    """
     Hot = 0b00001000        # 0x08      0000 1000        8
     Cold = 0b00011000       # 0x18      0001 1000       24
     Dry = 0x00010000        # 0x10      0001 0000       16
     Auto = 0x00100000       # 0x20      0010 0000       32
 
 class FanMode:
+    """
+    FanMode
+    """
     Speed1 = 0b00000001     # 0x01      0000 0001        1
     Speed2 = 0b00000010     # 0x02      0000 0010        2
     Speed3 = 0b00000011     # 0x03      0000 0011        3
@@ -27,6 +36,9 @@ class FanMode:
     Silent = 0b00000101     # 0x05      0000 0101        5
 
 class WideVanneMode:
+    """
+    WideVanneMode
+    """
     Auto = 0b01000000       # 0x40      0100 0000       64
     WvH1 = 0b01001000       # 0x48      0100 1000       72
     WvH2 = 0b01010000       # 0x50      0101 0000       80
@@ -36,6 +48,9 @@ class WideVanneMode:
     AutoMove = 0b01111000   # 0x78      0111 1000      120
 
 class Delay:
+    """
+    Delay
+    """
     HdrMark = 3400
     HdrSpace = 1750
     BitMark = 450
@@ -45,10 +60,16 @@ class Delay:
     RptSpace = 17100
 
 class Temperature:
+    """
+    Temperature
+    """
     Max = 31
     Min = 16
 
 class Index:
+    """
+    Index
+    """
     Power = 5               # Byte 6 - On / Off
     Climate = 6             # Byte 7 - Mode
     Temperature = 7         # Byte 8 - Temperature
@@ -56,8 +77,84 @@ class Index:
     CRC = 17                # Byte 18 - CRC
 
 class Constants:
-    Frequency = 38          # 38khz
+    """
+    Constants
+    """
+    Frequency = 38000       # 38khz
     MinTemp = 16
     MaxTemp = 31
     NbBytes = 18
     NbPackets = 2           # For Mitsubishi IR protocol we have to send two time the packet data
+
+class Mitsubishi:
+    """
+    Mitsubishi
+    """
+    def __init__(self, gpio_pin):
+        self.gpio_pin = gpio_pin
+
+    def power_off(self):
+        """
+        power_off
+        """
+        self.__send_command(
+            ClimateMode.Auto,
+            21,
+            FanMode.Auto,
+            WideVanneMode.Auto,
+            PowerMode.PowerOff)
+
+    def send_command(self, climate_mode, temperature, fan_mode, wide_vanne_mode):
+        """
+        send_command
+        """
+        self.__send_command(
+            climate_mode,
+            temperature,
+            fan_mode,
+            wide_vanne_mode,
+            PowerMode.PowerOn)
+
+    def __send_command(self, climate_mode, temperature, fan_mode, wide_vanne_mode, power_mode):
+
+        # data array is a valid trame, only byte to be chnaged will be updated.
+        data = [0x23, 0xCB, 0x26, 0x01, 0x00, 0x20, 0x08, 0x06, 0x30, 0x45, 0x67, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1F]
+
+        data[Index.Power] = power_mode
+        data[Index.Climate] = climate_mode
+        data[Index.Temperature] = temperature - 16
+        data[Index.FanVanne] = fan_mode | wide_vanne_mode
+
+        # CRC is a simple bits addition
+        data[Index.CRC] = sum(data[:-1]) # sum every bytes but the last one
+
+        rpi = pigpio.pi()
+        sender = ir_sender.IrSender(rpi, self.gpio_pin, Constants.Frequency)
+        sender.add_space(0)
+
+        # transmit packet more than once
+        for _ in range(0, Constants.NbPackets):
+
+            # Header for the Packet
+            sender.add_to_code(Delay.HdrMark, Delay.HdrSpace)
+
+            # Send all Bits from Byte Data in Reverse Order
+            for i in range(0, Constants.NbBytes):
+                mask = 1
+                while mask < 0xFF and mask > 0:
+                    if data[i] & mask:
+                        sender.add_to_code(Delay.BitMark, Delay.OneSpace)
+                    else:
+                        sender.add_to_code(Delay.BitMark, Delay.ZeroSpace)
+                    mask = mask << 1
+
+            # End of Packet
+            sender.add_to_code(Delay.RptMark, Delay.RptSpace)
+
+            # Just to be sure
+            sender.add_space(0)
+
+        sender.construct_code()
+        sender.send_code()
+        sender.clear_code()
+        rpi.stop()

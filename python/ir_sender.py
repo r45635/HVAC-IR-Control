@@ -77,4 +77,10 @@ class IrSender:
             self.buffer.append(pigpio.pulse(0, 1<<self.gpio, self.off_mics))
 
         # add space cycles of no carrier
+        self.add_space(space)
+
+    def add_space(self, space):
+        """
+        add_space
+        """
         self.buffer.append(pigpio.pulse(0, 0, space * self.micros))
