@@ -1,4 +1,4 @@
-# Python port for RPI3
+# HVAC-IR-Control - Python port for RPI3
 # Eric Masse (Ericmas001) - 2017-06-30
 # https://github.com/Ericmas001/HVAC-IR-Control
 
@@ -13,7 +13,7 @@ class PowerMode:
     PowerMode
     """
     PowerOff = 0b00000000   # 0x00      0000 0000        0
-    PowerOn = 0x00100000    # 0x20      0010 0000       32
+    PowerOn = 0b00100000    # 0x20      0010 0000       32
 
 class ClimateMode:
     """
@@ -21,8 +21,8 @@ class ClimateMode:
     """
     Hot = 0b00001000        # 0x08      0000 1000        8
     Cold = 0b00011000       # 0x18      0001 1000       24
-    Dry = 0x00010000        # 0x10      0001 0000       16
-    Auto = 0x00100000       # 0x20      0010 0000       32
+    Dry = 0b00010000        # 0x10      0001 0000       16
+    Auto = 0b00100000       # 0x20      0010 0000       32
 
 class FanMode:
     """
@@ -76,6 +76,7 @@ class Constants:
     Frequency = 38000       # 38khz
     MinTemp = 16
     MaxTemp = 31
+    MaxMask = 0xFF
     NbBytes = 18
     NbPackets = 2           # For Mitsubishi IR protocol we have to send two time the packet data
 
@@ -110,8 +111,19 @@ class Mitsubishi:
 
     def __send_command(self, climate_mode, temperature, fan_mode, wide_vanne_mode, power_mode):
 
+        sender = ir_sender.IrSender(self.gpio_pin, "NEC", dict(
+            leading_pulse_duration=Delay.HdrMark,
+            leading_gap_duration=Delay.HdrSpace,
+            one_pulse_duration=Delay.BitMark,
+            one_gap_duration=Delay.OneSpace,
+            zero_pulse_duration=Delay.BitMark,
+            zero_gap_duration=Delay.ZeroSpace,
+            trailing_pulse_duration=Delay.RptMark))
+
         # data array is a valid trame, only byte to be chnaged will be updated.
-        data = [0x23, 0xCB, 0x26, 0x01, 0x00, 0x20, 0x08, 0x06, 0x30, 0x45, 0x67, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1F]
+        data = [0x23, 0xCB, 0x26, 0x01, 0x00, 0x20,
+                0x08, 0x06, 0x30, 0x45, 0x67, 0x00,
+                0x00, 0x00, 0x00, 0x00, 0x00, 0x1F]
 
         data[Index.Power] = power_mode
         data[Index.Climate] = climate_mode
@@ -121,33 +133,6 @@ class Mitsubishi:
         # CRC is a simple bits addition
         data[Index.CRC] = sum(data[:-1]) # sum every bytes but the last one
 
-        rpi = pigpio.pi()
-        sender = ir_sender.IrSender(rpi, self.gpio_pin, Constants.Frequency)
-        sender.add_space(0)
-
         # transmit packet more than once
         for _ in range(0, Constants.NbPackets):
-
-            # Header for the Packet
-            sender.add_to_code(Delay.HdrMark, Delay.HdrSpace)
-
-            # Send all Bits from Byte Data in Reverse Order
-            for i in range(0, Constants.NbBytes):
-                mask = 1
-                while mask < 0xFF and mask > 0:
-                    if data[i] & mask:
-                        sender.add_to_code(Delay.BitMark, Delay.OneSpace)
-                    else:
-                        sender.add_to_code(Delay.BitMark, Delay.ZeroSpace)
-                    mask = mask << 1
-
-            # End of Packet
-            sender.add_to_code(Delay.RptMark, Delay.RptSpace)
-
-            # Just to be sure
-            sender.add_space(0)
-
-        sender.construct_code()
-        sender.send_code()
-        sender.clear_code()
-        rpi.stop()
+            sender.send_data(data, Constants.MaxMask)
