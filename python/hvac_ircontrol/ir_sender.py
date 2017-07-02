@@ -134,13 +134,13 @@ class NEC():
     # Generate zero or one in NEC protocol
     # Zero is represented by a pulse and a gap of the same length
     def zero(self):
-        self.__log(LogLevel.Normal, "ZERO")
+        self.__log(LogLevel.Verbose, "ZERO")
         self.wave_generator.one(self.zero_pulse_duration)
         self.wave_generator.zero(self.zero_gap_duration)
 
     # One is represented by a pulse and a gap three times longer than the pulse
     def one(self):
-        self.__log(LogLevel.Normal, "ONE")
+        self.__log(LogLevel.Verbose, "ONE")
         self.wave_generator.one(self.one_pulse_duration)
         self.wave_generator.zero(self.one_gap_duration)
 
