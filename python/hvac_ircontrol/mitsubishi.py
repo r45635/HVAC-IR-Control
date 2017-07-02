@@ -1,6 +1,7 @@
 # HVAC-IR-Control - Python port for RPI3
 # Eric Masse (Ericmas001) - 2017-06-30
 # https://github.com/Ericmas001/HVAC-IR-Control
+# Tested on Mitsubishi Model MSZ-FE12NA
 
 # From original: https://github.com/r45635/HVAC-IR-Control
 # (c)  Vincent Cruvellier - 10th, January 2016 - Fun with ESP8266
@@ -25,10 +26,10 @@ class ClimateMode:
     Dry = 0b00010000            # 0x10      0001 0000       16
     Auto = 0b00100000           # 0x20      0010 0000       32
 
-    __Hot2 = 0b00001000         # 0x00      0000 0000        0
-    __Cold2 = 0b00011000        # 0x06      0000 0110        6
-    __Dry2 = 0b00010000         # 0x02      0000 0010        2
-    __Auto2 = 0b00100000        # 0x00      0000 0000        0
+    __Hot2 = 0b00000000         # 0x00      0000 0000        0
+    __Cold2 = 0b00000110        # 0x06      0000 0110        6
+    __Dry2 = 0b00000010         # 0x02      0000 0010        2
+    __Auto2 = 0b00000000        # 0x00      0000 0000        0
 
     @classmethod
     def climate2(cls, climate_mode):
@@ -58,12 +59,12 @@ class VanneHorizontalMode:
     VanneHorizontalMode
     """
     NotAvailable = 0b00000000   # 0x00      0000 0000        0
-    LeftEnd = 0b01000000        # 0x10      0001 0000       16
-    Left = 0b01001000           # 0x20      0010 0000       32
-    Middle = 0b01010000         # 0x30      0011 0000       48
-    Right = 0b01011000          # 0x40      0100 0000       64
-    RightEnd = 0b01100000       # 0x50      0101 0000       80
-    Swing = 0b01101000          # 0x80      1000 0000      128
+    LeftEnd = 0b00010000        # 0x10      0001 0000       16
+    Left = 0b00100000           # 0x20      0010 0000       32
+    Middle = 0b00110000         # 0x30      0011 0000       48
+    Right = 0b01000000          # 0x40      0100 0000       64
+    RightEnd = 0b01010000       # 0x50      0101 0000       80
+    Swing = 0b11000000          # 0xC0      1100 0000      192
 
 class FanMode:
     """
@@ -72,9 +73,7 @@ class FanMode:
     Speed1 = 0b00000001         # 0x01      0000 0001        1
     Speed2 = 0b00000010         # 0x02      0000 0010        2
     Speed3 = 0b00000011         # 0x03      0000 0011        3
-    Speed4 = 0b00000100         # 0x04      0000 0100        4
     Auto = 0b10000000           # 0x80      1000 0000      128
-    Silent = 0b00000101         # 0x05      0000 0101        5
 
 class VanneVerticalMode:
     """
@@ -93,9 +92,9 @@ class TimeControlMode:
     TimeControlMode
     """
     NoTimeControl = 0b00000000  # 0x00      0000 0000        0
-    ControlStart = 0b00000000   # 0x05      0000 0101        5
-    ControlEnd = 0b00000000     # 0x03      0000 0011        3
-    ControlBoth = 0b00000000    # 0x07      0000 0111        7
+    ControlStart = 0b00000101   # 0x05      0000 0101        5
+    ControlEnd = 0b00000011     # 0x03      0000 0011        3
+    ControlBoth = 0b00000111    # 0x07      0000 0111        7
 
 class AreaMode:
     """
@@ -103,9 +102,9 @@ class AreaMode:
     """
     NotAvailable = 0b00000000   # 0x00      0000 0000        0
     NotSet = 0b00000000         # 0x00      0000 0000        0
-    Left = 0b00000000           # 0x40      0100 0000       64
-    Right = 0b00000000          # 0xC0      1100 0000      192
-    Full = 0b00000000           # 0x80      1000 0000      128
+    Left = 0b01000000           # 0x40      0100 0000       64
+    Right = 0b11000000          # 0xC0      1100 0000      192
+    Full = 0b10000000           # 0x80      1000 0000      128
     
 class Delay:
     """
@@ -202,6 +201,10 @@ class Mitsubishi:
             end_time,
             PowerMode.PowerOn)
 
+    def __log(self, min_log_level, message):
+        if min_log_level <= self.log_level:
+            print(message)
+
     def __send_command(self, climate_mode, temperature, fan_mode, vanne_vertical_mode, vanne_horizontal_mode, isee_mode, area_mode, start_time, end_time, power_mode):
 
         sender = ir_sender.IrSender(self.gpio_pin, "NEC", dict(
@@ -219,17 +222,38 @@ class Mitsubishi:
                 0x08, 0x06, 0x30, 0x45, 0x67, 0x00,
                 0x00, 0x00, 0x00, 0x00, 0x00, 0x1F]
 
+        self.__log(ir_sender.LogLevel.Verbose, '')
         data[Index.Power] = power_mode
+        self.__log(ir_sender.LogLevel.Verbose, 'PWR: {0:03d}  {0:02x}  {0:08b}'.format(data[Index.Power]))
+        self.__log(ir_sender.LogLevel.Verbose, '')
         data[Index.ClimateAndISee] = climate_mode | isee_mode
+        self.__log(ir_sender.LogLevel.Verbose, 'CLI: {0:03d}  {0:02x}  {0:08b}'.format(climate_mode))
+        self.__log(ir_sender.LogLevel.Verbose, 'SEE: {0:03d}  {0:02x}  {0:08b}'.format(isee_mode))
+        self.__log(ir_sender.LogLevel.Verbose, 'CLS: {0:03d}  {0:02x}  {0:08b}'.format(data[Index.ClimateAndISee]))
+        self.__log(ir_sender.LogLevel.Verbose, '')
         data[Index.Temperature] = max(Constants.MinTemp, min(Constants.MaxTemp, temperature)) - 16
+        self.__log(ir_sender.LogLevel.Verbose, 'TMP: {0:03d}  {0:02x}  {0:08b} (asked: {1})'.format(data[Index.Temperature], temperature))
+        self.__log(ir_sender.LogLevel.Verbose, '')
         data[Index.ClimateAndHorizontalVanne] = ClimateMode.climate2(climate_mode) | vanne_horizontal_mode
+        self.__log(ir_sender.LogLevel.Verbose, 'CLI: {0:03d}  {0:02x}  {0:08b}'.format(ClimateMode.climate2(climate_mode)))
+        self.__log(ir_sender.LogLevel.Verbose, 'HOR: {0:03d}  {0:02x}  {0:08b}'.format(vanne_horizontal_mode))
+        self.__log(ir_sender.LogLevel.Verbose, 'CLH: {0:03d}  {0:02x}  {0:08b}'.format(data[Index.ClimateAndHorizontalVanne]))
+        self.__log(ir_sender.LogLevel.Verbose, '')
         data[Index.FanAndVerticalVanne] = fan_mode | vanne_vertical_mode
+        self.__log(ir_sender.LogLevel.Verbose, 'FAN: {0:03d}  {0:02x}  {0:08b}'.format(data[Index.FanAndVerticalVanne]))
+        self.__log(ir_sender.LogLevel.Verbose, '')
 
         now = datetime.today()
-        data[Index.Clock] = now.hour * (now.minute//10)
+        data[Index.Clock] = (now.hour*6) + (now.minute//10)
+        self.__log(ir_sender.LogLevel.Verbose, 'CLK: {0:03d}  {0:02x}  {0:08b} {1}'.format(data[Index.Clock], now))
+        self.__log(ir_sender.LogLevel.Verbose, '')
 
-        data[Index.EndTime] = 0 if end_time is None else (end_time.hour * (end_time.minute//10))
-        data[Index.StartTime] = 0 if start_time is None else start_time.hour * (start_time.minute//10)
+        data[Index.EndTime] = 0 if end_time is None else ((end_time.hour*6) + (end_time.minute//10))
+        self.__log(ir_sender.LogLevel.Verbose, 'ETI: {0:03d}  {0:02x}  {0:08b} {1}'.format(data[Index.EndTime], end_time))
+        self.__log(ir_sender.LogLevel.Verbose, '')
+        data[Index.StartTime] = 0 if start_time is None else ((start_time.hour*6) + (start_time.minute//10))
+        self.__log(ir_sender.LogLevel.Verbose, 'STI: {0:03d}  {0:02x}  {0:08b} {1}'.format(data[Index.StartTime], start_time))
+        self.__log(ir_sender.LogLevel.Verbose, '')
 
         time_control = TimeControlMode.NoTimeControl
         if end_time is not None and start_time is not None:
@@ -241,9 +265,15 @@ class Mitsubishi:
         else:
             time_control = TimeControlMode.NoTimeControl
         data[Index.TimeControlAndArea] = time_control | area_mode 
+        self.__log(ir_sender.LogLevel.Verbose, 'TIC: {0:03d}  {0:02x}  {0:08b}'.format(time_control))
+        self.__log(ir_sender.LogLevel.Verbose, 'AEA: {0:03d}  {0:02x}  {0:08b}'.format(area_mode))
+        self.__log(ir_sender.LogLevel.Verbose, 'TCA: {0:03d}  {0:02x}  {0:08b}'.format(data[Index.TimeControlAndArea]))
+        self.__log(ir_sender.LogLevel.Verbose, '')
 
         # CRC is a simple bits addition
         # sum every bytes but the last one
         data[Index.CRC] = sum(data[:-1]) % (Constants.MaxMask + 1)
+        self.__log(ir_sender.LogLevel.Verbose, 'CRC: {0:03d}  {0:02x}  {0:08b}'.format(data[Index.CRC]))
+        self.__log(ir_sender.LogLevel.Verbose, '')
 
         sender.send_data(data, Constants.MaxMask, True, Constants.NbPackets)
