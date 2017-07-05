@@ -50,20 +50,26 @@ class ISeeMode:
     """
     ISeeMode
     """
-    NotAvailable = 0b00000000   # 0x00      0000 0000        0
     ISeeOff = 0b00000000        # 0x00      0000 0000        0
     ISeeOn = 0b01000000         # 0x40      0100 0000       64
+	
+class PowerfulMode:
+    """
+    PowerfulMode
+    """
+    PowerfulOff = 0b00000000        # 0x00      0000 0000        0
+    PowerfulOn = 0b00001000         # 0x08      0000 1000        8
 
 class VanneHorizontalMode:
     """
     VanneHorizontalMode
     """
-    NotAvailable = 0b00000000   # 0x00      0000 0000        0
-    LeftEnd = 0b00010000        # 0x10      0001 0000       16
-    Left = 0b00100000           # 0x20      0010 0000       32
+    NotSet = 0b00000000         # 0x00      0000 0000        0
+    Left = 0b00010000           # 0x10      0001 0000       16
+    MiddleLeft = 0b00100000     # 0x20      0010 0000       32
     Middle = 0b00110000         # 0x30      0011 0000       48
-    Right = 0b01000000          # 0x40      0100 0000       64
-    RightEnd = 0b01010000       # 0x50      0101 0000       80
+    MiddleRight = 0b01000000    # 0x40      0100 0000       64
+    Right = 0b01010000          # 0x50      0101 0000       80
     Swing = 0b11000000          # 0xC0      1100 0000      192
 
 class FanMode:
@@ -80,11 +86,11 @@ class VanneVerticalMode:
     VanneVerticalMode
     """
     Auto = 0b01000000           # 0x40      0100 0000       64
-    WvH1 = 0b01001000           # 0x48      0100 1000       72
-    WvH2 = 0b01010000           # 0x50      0101 0000       80
-    WvH3 = 0b01011000           # 0x58      0101 1000       88
-    WvH4 = 0b01100000           # 0x60      0110 0000       96
-    WvH5 = 0b01101000           # 0x68      0110 1000      104
+    Top = 0b01001000            # 0x48      0100 1000       72
+    MiddleTop = 0b01010000      # 0x50      0101 0000       80
+    Middle = 0b01011000         # 0x58      0101 1000       88
+    MiddleBottom = 0b01100000   # 0x60      0110 0000       96
+    Bottom = 0b01101000         # 0x68      0110 1000      104
     Swing = 0b01111000          # 0x78      0111 1000      120
 
 class TimeControlMode:
@@ -100,7 +106,6 @@ class AreaMode:
     """
     AreaMode
     """
-    NotAvailable = 0b00000000   # 0x00      0000 0000        0
     NotSet = 0b00000000         # 0x00      0000 0000        0
     Left = 0b01000000           # 0x40      0100 0000       64
     Right = 0b11000000          # 0xC0      1100 0000      192
@@ -137,7 +142,7 @@ class Index:
     StartTime = 12
     TimeControlAndArea = 13
     Unused14 = 14
-    Unused15 = 15
+    PowerfulMode = 15
     Unused16 = 16
     CRC = 17
 
@@ -170,10 +175,11 @@ class Mitsubishi:
             FanMode.Auto,
             VanneVerticalMode.Auto,
             VanneHorizontalMode.Swing,
-            ISeeMode.NotAvailable,
-            AreaMode.NotAvailable,
+            ISeeMode.ISeeOff,
+            AreaMode.NotSet,
             None,
             None,
+			PowerfulMode.PowerfulOff,
             PowerMode.PowerOff)
 
     def send_command(self,
@@ -185,7 +191,8 @@ class Mitsubishi:
                      isee_mode=ISeeMode.NotAvailable,
                      area_mode=AreaMode.NotAvailable,
                      start_time=None,
-                     end_time=None):
+                     end_time=None,
+					 powerful=PowerfulMode.PowerfulOff):
         """
         send_command
         """
@@ -199,13 +206,14 @@ class Mitsubishi:
             area_mode,
             start_time,
             end_time,
+			powerful,
             PowerMode.PowerOn)
 
     def __log(self, min_log_level, message):
         if min_log_level <= self.log_level:
             print(message)
 
-    def __send_command(self, climate_mode, temperature, fan_mode, vanne_vertical_mode, vanne_horizontal_mode, isee_mode, area_mode, start_time, end_time, power_mode):
+    def __send_command(self, climate_mode, temperature, fan_mode, vanne_vertical_mode, vanne_horizontal_mode, isee_mode, area_mode, start_time, end_time, powerful, power_mode):
 
         sender = ir_sender.IrSender(self.gpio_pin, "NEC", dict(
             leading_pulse_duration=Delay.HdrMark,
@@ -220,7 +228,7 @@ class Mitsubishi:
         # data array is a valid trame, only byte to be chnaged will be updated.
         data = [0x23, 0xCB, 0x26, 0x01, 0x00, 0x20,
                 0x08, 0x06, 0x30, 0x45, 0x67, 0x00,
-                0x00, 0x00, 0x00, 0x00, 0x00, 0x1F]
+                0x00, 0x00, 0x10, 0x00, 0x00, 0x1F]
 
         self.__log(ir_sender.LogLevel.Verbose, '')
         data[Index.Power] = power_mode
@@ -268,6 +276,10 @@ class Mitsubishi:
         self.__log(ir_sender.LogLevel.Verbose, 'TIC: {0:03d}  {0:02x}  {0:08b}'.format(time_control))
         self.__log(ir_sender.LogLevel.Verbose, 'AEA: {0:03d}  {0:02x}  {0:08b}'.format(area_mode))
         self.__log(ir_sender.LogLevel.Verbose, 'TCA: {0:03d}  {0:02x}  {0:08b}'.format(data[Index.TimeControlAndArea]))
+        self.__log(ir_sender.LogLevel.Verbose, '')
+		
+		data[Index.PowerfulMode] = powerful
+        self.__log(ir_sender.LogLevel.Verbose, 'FUL: {0:03d}  {0:02x}  {0:08b}'.format(data[Index.PowerfulMode]))
         self.__log(ir_sender.LogLevel.Verbose, '')
 
         # CRC is a simple bits addition
