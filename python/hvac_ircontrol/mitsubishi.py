@@ -52,7 +52,7 @@ class ISeeMode:
     """
     ISeeOff = 0b00000000        # 0x00      0000 0000        0
     ISeeOn = 0b01000000         # 0x40      0100 0000       64
-	
+    
 class PowerfulMode:
     """
     PowerfulMode
@@ -179,7 +179,7 @@ class Mitsubishi:
             AreaMode.NotSet,
             None,
             None,
-			PowerfulMode.PowerfulOff,
+            PowerfulMode.PowerfulOff,
             PowerMode.PowerOff)
 
     def send_command(self,
@@ -192,7 +192,7 @@ class Mitsubishi:
                      area_mode=AreaMode.NotAvailable,
                      start_time=None,
                      end_time=None,
-					 powerful=PowerfulMode.PowerfulOff):
+                     powerful=PowerfulMode.PowerfulOff):
         """
         send_command
         """
@@ -206,7 +206,7 @@ class Mitsubishi:
             area_mode,
             start_time,
             end_time,
-			powerful,
+            powerful,
             PowerMode.PowerOn)
 
     def __log(self, min_log_level, message):
@@ -277,8 +277,8 @@ class Mitsubishi:
         self.__log(ir_sender.LogLevel.Verbose, 'AEA: {0:03d}  {0:02x}  {0:08b}'.format(area_mode))
         self.__log(ir_sender.LogLevel.Verbose, 'TCA: {0:03d}  {0:02x}  {0:08b}'.format(data[Index.TimeControlAndArea]))
         self.__log(ir_sender.LogLevel.Verbose, '')
-		
-		data[Index.PowerfulMode] = powerful
+        
+        data[Index.PowerfulMode] = powerful
         self.__log(ir_sender.LogLevel.Verbose, 'FUL: {0:03d}  {0:02x}  {0:08b}'.format(data[Index.PowerfulMode]))
         self.__log(ir_sender.LogLevel.Verbose, '')
 
