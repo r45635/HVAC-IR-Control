@@ -187,9 +187,9 @@ class Mitsubishi:
                      temperature=21,
                      fan_mode=FanMode.Auto,
                      vanne_vertical_mode=VanneVerticalMode.Auto,
-                     vanne_horizontal_mode=VanneHorizontalMode.NotAvailable,
-                     isee_mode=ISeeMode.NotAvailable,
-                     area_mode=AreaMode.NotAvailable,
+                     vanne_horizontal_mode=VanneHorizontalMode.NotSet,
+                     isee_mode=ISeeMode.ISeeOff,
+                     area_mode=AreaMode.NotSet,
                      start_time=None,
                      end_time=None,
                      powerful=PowerfulMode.PowerfulOff):
