@@ -170,10 +170,14 @@ class IRsend
     );
     // Add support for W001CP R61Y23304 Remote Controller
     void sendHvacMitsubishi_W001CP(
-      HvacMode                  HVAC_Mode,           // Example HVAC_HOT.         This type support HVAC_HOT,HVAC_COLD,HVAC_DRY,HVAC_FAN,HVAC_AUTO.           HvacMitsubishiMode
-      int                       HVAC_Temp,           // Example 21  (°c).         This type support 17~28 in HVAC_HOT mode, 19~30 in HVAC_COLD and HVAC_DRY mode.
-      HvacFanMode               HVAC_FanMode,        // Example FAN_SPEED_AUTO.   This type support FAN_SPEED_1,FAN_SPEED_2,FAN_SPEED_3,FAN_SPEED_4.          HvacMitsubishiFanMode
-      HvacVanneMode             HVAC_VanneMode,      // Example VANNE_AUTO_MOVE.  This type support support VANNE_AUTO,VANNE_H1,VANNE_H2,VANNE_H3,VANNE_H4.   HvacMitsubishiVanneMode
+      HvacMode                  HVAC_Mode,           // Example HVAC_HOT.         HvacMitsubishiMode
+                                                     // This type support HVAC_HOT,HVAC_COLD,HVAC_DRY,HVAC_FAN,HVAC_AUTO.
+      int                       HVAC_Temp,           // Example 21  (°c).
+                                                     // This type support 17~28 in HVAC_HOT mode, 19~30 in HVAC_COLD and HVAC_DRY mode.
+      HvacFanMode               HVAC_FanMode,        // Example FAN_SPEED_AUTO.   HvacMitsubishiFanMode
+                                                     // This type support FAN_SPEED_1,FAN_SPEED_2,FAN_SPEED_3,FAN_SPEED_4.
+      HvacVanneMode             HVAC_VanneMode,      // Example VANNE_AUTO_MOVE.  HvacMitsubishiVanneMode
+                                                     // This type support support VANNE_AUTO,VANNE_H1,VANNE_H2,VANNE_H3,VANNE_H4.
       int                       OFF                  // Example false
     );
     void sendHvacMitsubishiFD(
