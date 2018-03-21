@@ -505,6 +505,136 @@ void IRsend::sendHvacMitsubishi(
   }
 }
 
+/***************************************************************************/
+/* Send IR command to Mitsubishi HVAC - sendHvacMitsubishi 
+/* Add support for W001CP R61Y23304 Remote Controller
+/***************************************************************************/
+void sendHvacMitsubishi_W001CP(
+  HvacMode                  HVAC_Mode,           // Example HVAC_HOT.         HvacMitsubishiMode
+                                                     // This type support HVAC_HOT,HVAC_COLD,HVAC_DRY,HVAC_FAN,HVAC_AUTO.
+  int                       HVAC_Temp,           // Example 21  (°c).
+                                                     // This type support 17~28 in HVAC_HOT mode, 19~30 in HVAC_COLD and HVAC_DRY mode.
+  HvacFanMode               HVAC_FanMode,        // Example FAN_SPEED_AUTO.   HvacMitsubishiFanMode
+                                                     // This type support FAN_SPEED_1,FAN_SPEED_2,FAN_SPEED_3,FAN_SPEED_4.
+  HvacVanneMode             HVAC_VanneMode,      // Example VANNE_AUTO_MOVE.  HvacMitsubishiVanneMode
+                                                     // This type support support VANNE_AUTO,VANNE_H1,VANNE_H2,VANNE_H3,VANNE_H4.
+  int                       OFF                  // Example false
+)
+{
+
+#define  HVAC_MITSUBISHI_DEBUG;  // Un comment to access DEBUG information through Serial Interface
+
+  byte mask = 1; //our bitmask
+  byte data[17] = { 0x23, 0xCB, 0x26, 0x21, 0x00, 0x40, 0x52, 0x35, 0x04, 0x00, 0x00, 0xBF, 0xAD, 0xCA, 0xFB, 0xFF, 0xFF };
+  // byte              0     1     2     3     4     5     6     7     8     9    10    11    12    13    14    15    16
+  // data array is a valid trame, only byte to be chnaged will be updated.
+
+  byte i;
+
+#ifdef HVAC_MITSUBISHI_DEBUG
+  Serial.println("Packet to send: ");
+  for (i = 0; i < 17; i++) {
+    Serial.print("_");
+    Serial.print(data[i], HEX);
+  }
+  Serial.println(".");
+#endif
+
+  // Byte 5 - On / Off
+  if (OFF) {
+    data[5] = (byte) 0x0; // Turn OFF HVAC
+  } else {
+    data[5] = (byte) 0x40; // Tuen ON HVAC
+  }
+
+  // Byte 6 - Temperature / Mode 
+  byte tmpTM;
+  
+  switch (HVAC_Mode)  //Mode Byte
+  {
+    case HVAC_HOT:   tmpTM = (byte) B00000010; break;
+    case HVAC_COLD:  tmpTM = (byte) B00000001; break;
+    case HVAC_DRY:   tmpTM = (byte) B00000101; break;
+    case HVAC_FAN:   tmpTM = (byte) B00000000; break;
+    case HVAC_AUTO:  tmpTM = (byte) B00000011; break;
+    default: break;
+  }
+
+  byte Temp;
+  if (HVAC_Temp > 31) { Temp = 31;}
+  else if (HVAC_Temp < 16) { Temp = 16; } 
+  else { Temp = HVAC_Temp; };
+  Temp = (byte) Temp - 16;
+  
+  data[6] = (byte) Temp * 16 | tmpTM; // Temperature bits are the high 4 bits, Mode bits are the low 4 bits.
+
+  // Byte 7 - VANNE / FAN
+  switch (HVAC_FanMode)
+  {
+    case FAN_SPEED_1:       data[7] = (byte) B00000001; break;
+    case FAN_SPEED_2:       data[7] = (byte) B00000011; break;
+    case FAN_SPEED_3:       data[7] = (byte) B00000101; break;
+    case FAN_SPEED_4:       data[7] = (byte) B00000111; break;
+    default: break;
+  }
+
+  switch (HVAC_VanneMode)
+  {
+    case VANNE_AUTO:        data[7] = (byte) data[7] | B11000000; break;
+    case VANNE_H1:          data[7] = (byte) data[7] | B00000000; break;
+    case VANNE_H2:          data[7] = (byte) data[7] | B00010000; break;
+    case VANNE_H3:          data[7] = (byte) data[7] | B00100000; break;
+    case VANNE_H4:          data[7] = (byte) data[7] | B00110000; break;
+    default: break;
+  }
+
+  // Byte 11 - XOR of Byte 5
+  data[11] = (byte) ^data[5];
+  
+  // Byte 12 - XOR of Byte 6
+  data[12] = (byte) ^data[6];
+  
+  // Byte 13 - XOR of Byte 7
+  data[13] = (byte) ^data[7];
+
+#ifdef HVAC_MITSUBISHI_DEBUG
+  Serial.println("Packet to send: ");
+  for (i = 0; i < 17; i++) {
+    Serial.print("_"); Serial.print(data[i], HEX);
+  }
+  Serial.println(".");
+  for (i = 0; i < 17; i++) {
+    Serial.print(data[i], BIN); Serial.print(" ");
+  }
+  Serial.println(".");
+#endif
+
+  enableIROut(38);  // 38khz
+  space(0);
+  for (int j = 0; j < 1; j++) {  // Mitsubishi W001CP IR protocol only need to send one time
+    // Header for the Packet
+    mark(HVAC_MITSUBISHI_HDR_MARK);
+    space(HVAC_MITSUBISHI_HDR_SPACE);
+    for (i = 0; i < 18; i++) {
+      // Send all Bits from Byte Data in Reverse Order
+      for (mask = 00000001; mask > 0; mask <<= 1) { //iterate through bit mask
+        if (data[i] & mask) { // Bit ONE
+          mark(HVAC_MITSUBISHI_BIT_MARK);
+          space(HVAC_MITSUBISHI_ONE_SPACE);
+        }
+        else { // Bit ZERO
+          mark(HVAC_MITSUBISHI_BIT_MARK);
+          space(HVAC_MISTUBISHI_ZERO_SPACE);
+        }
+        //Next bits
+      }
+    }
+    // End of Packet and retransmission of the Packet
+    mark(HVAC_MITSUBISHI_RPT_MARK);
+    space(HVAC_MITSUBISHI_RPT_SPACE);
+    space(0); // Just to be sure
+  }
+}
 
 /****************************************************************************
 /* Send IR command to Mitsubishi HVAC - sendHvacMitsubishi
