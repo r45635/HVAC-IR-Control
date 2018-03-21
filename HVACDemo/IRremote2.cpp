@@ -522,7 +522,7 @@ void IRsend::sendHvacMitsubishi_W001CP(
 )
 {
 
-#define  HVAC_MITSUBISHI_DEBUG;  // Un comment to access DEBUG information through Serial Interface
+//#define  HVAC_MITSUBISHI_DEBUG;  // Un comment to access DEBUG information through Serial Interface
 
   byte mask = 1; //our bitmask
   byte data[17] = { 0x23, 0xCB, 0x26, 0x21, 0x00, 0x40, 0x52, 0x35, 0x04, 0x00, 0x00, 0xBF, 0xAD, 0xCA, 0xFB, 0xFF, 0xFF };
@@ -550,7 +550,7 @@ void IRsend::sendHvacMitsubishi_W001CP(
   // Byte 6 - Temperature / Mode 
   byte tmpTM;
   
-  switch (HVAC_Mode)  //Mode Byte
+  switch (HVAC_Mode)  // Mode
   {
     case HVAC_HOT:   tmpTM = (byte) B00000010; break;
     case HVAC_COLD:  tmpTM = (byte) B00000001; break;
@@ -560,9 +560,11 @@ void IRsend::sendHvacMitsubishi_W001CP(
     default: break;
   }
 
-  byte Temp;
-  if (HVAC_Temp > 31) { Temp = 31;}
-  else if (HVAC_Temp < 16) { Temp = 16; } 
+  byte Temp;  // Temperature, support 17~28 in HVAC_HOT mode, 19~30 in HVAC_COLD and HVAC_DRY mode
+  if (HVAC_Temp > 30 && HVAC_Mode != HVAC_HOT) { Temp = 30;}
+  else if (HVAC_Temp > 28 && HVAC_Mode == HVAC_HOT) { Temp = 28;}
+  else if (HVAC_Temp < 19 && HVAC_Mode != HVAC_HOT) { Temp = 19; } 
+  else if (HVAC_Temp < 17 && HVAC_Mode == HVAC_HOT) { Temp = 17; } 
   else { Temp = HVAC_Temp; };
   Temp = (byte) Temp - 16;
   
@@ -575,6 +577,9 @@ void IRsend::sendHvacMitsubishi_W001CP(
     case FAN_SPEED_2:       data[7] = (byte) B00000011; break;
     case FAN_SPEED_3:       data[7] = (byte) B00000101; break;
     case FAN_SPEED_4:       data[7] = (byte) B00000111; break;
+    case FAN_SPEED_5:       data[7] = (byte) B00000111; break;  // this type doesn't support speed5, set to speed4
+    case FAN_SPEED_AUTO:    data[7] = (byte) B00000101; break;  // this type doesn't support auto,   set to speed3 
+    case FAN_SPEED_SILENT:  data[7] = (byte) B00000001; break;  // this type doesn't support slient, set to speed1 
     default: break;
   }
 
@@ -585,6 +590,8 @@ void IRsend::sendHvacMitsubishi_W001CP(
     case VANNE_H2:          data[7] = (byte) data[7] | B00010000; break;
     case VANNE_H3:          data[7] = (byte) data[7] | B00100000; break;
     case VANNE_H4:          data[7] = (byte) data[7] | B00110000; break;
+    case VANNE_H5:          data[7] = (byte) data[7] | B00110000; break;  // this type doesn't support vanne5,   set to vanne4 
+    case VANNE_AUTO_MOVE:   data[7] = (byte) data[7] | B11000000; break;  // this type doesn't support automove, set to auto 
     default: break;
   }
 
