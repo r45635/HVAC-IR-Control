@@ -509,7 +509,7 @@ void IRsend::sendHvacMitsubishi(
 /* Send IR command to Mitsubishi HVAC - sendHvacMitsubishi 
 /* Add support for W001CP R61Y23304 Remote Controller
 /***************************************************************************/
-void sendHvacMitsubishi_W001CP(
+void IRsend::sendHvacMitsubishi_W001CP(
   HvacMode                  HVAC_Mode,           // Example HVAC_HOT.         HvacMitsubishiMode
                                                      // This type support HVAC_HOT,HVAC_COLD,HVAC_DRY,HVAC_FAN,HVAC_AUTO.
   int                       HVAC_Temp,           // Example 21  (°c).
@@ -589,13 +589,13 @@ void sendHvacMitsubishi_W001CP(
   }
 
   // Byte 11 - XOR of Byte 5
-  data[11] = (byte) ^data[5];
+  data[11] = (byte) B11111111 ^ data[5];
   
   // Byte 12 - XOR of Byte 6
-  data[12] = (byte) ^data[6];
+  data[12] = (byte) B11111111 ^ data[6];
   
   // Byte 13 - XOR of Byte 7
-  data[13] = (byte) ^data[7];
+  data[13] = (byte) B11111111 ^ data[7];
 
 #ifdef HVAC_MITSUBISHI_DEBUG
   Serial.println("Packet to send: ");
