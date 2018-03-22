@@ -13,7 +13,7 @@
  * LG added by Darryl Smith (based on the JVC protocol)
  *
  * Mitsubishi HVAC protocol added by Vincent Cruvellier.
- *
+ * Mitsubishi HVAC W001CP R61Y23304 protocol added by bt4wang.
  */
 
 #ifndef IRremote_h
