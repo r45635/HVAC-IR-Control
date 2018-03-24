@@ -687,13 +687,13 @@ void IRsend::sendHvacMitsubishiFD(
   // Byte 6 - Mode
   switch (HVAC_Mode)
   {
-    case HVAC_HOT:   data[6] = (byte) 0x00001000; break;    
-    case HVAC_COLD:  data[6] = (byte) 0x00011000; break;
-    case HVAC_DRY:   data[6] = (byte) 0x00010000; break;    
-    case HVAC_AUTO:  data[6] = (byte) 0x00100000; break;    
+    case HVAC_HOT:   data[6] = (byte) B00001000; break;
+    case HVAC_COLD:  data[6] = (byte) B00011000; break;
+    case HVAC_DRY:   data[6] = (byte) B00010000; break;
+    case HVAC_AUTO:  data[6] = (byte) B00100000; break;
     default: break;
   }
-  if (HVAC_ISEE)  { data[6] = (byte) data[6] | 0x01000000;  }
+  if (HVAC_ISEE)  { data[6] = (byte) data[6] | B01000000;  }
 
   // Byte 7 - Temperature
   // Check Min Max For Hot Mode
@@ -706,15 +706,24 @@ void IRsend::sendHvacMitsubishiFD(
   // Byte 8 - Complement To HVAC Mode + Wide Vanne
   switch (HVAC_Mode)
   {
-    case HVAC_HOT:   data[8] = (byte) 0x00000000; break;    
-    case HVAC_COLD:  data[8] = (byte) 0x00000000; break;
-    case HVAC_DRY:   data[8] = (byte) 0x00000000; break;    
-    case HVAC_AUTO:  data[8] = (byte) 0x00000000; break;    
+    case HVAC_HOT:   data[8] = (byte) B00000000; break;
+    case HVAC_COLD:  data[8] = (byte) B00000110; break;
+    case HVAC_DRY:   data[8] = (byte) B00000010; break;
+    case HVAC_AUTO:  data[8] = (byte) B00000000; break;
     default: break;
   }
-  
+  switch (HVAC_WideMode)
+  {
+    case WIDE_LEFT_END:   data[8] = (byte) data[8] | B00010000; break;
+    case WIDE_LEFT:       data[8] = (byte) data[8] | B00100000; break;
+    case WIDE_MIDDLE:     data[8] = (byte) data[8] | B00110000; break;
+    case WIDE_RIGHT:      data[8] = (byte) data[8] | B01000000; break;
+    case WIDE_RIGHT_END:  data[8] = (byte) data[8] | B01010000; break;
+    case WIDE_SWING:      data[8] = (byte) data[8] | B10000000; break;
+    default: break;
+  }
 
-  // Byte 10 - FAN / VANNE
+  // Byte 9 - FAN / VANNE
   switch (HVAC_FanMode)
   {
     case FAN_SPEED_1:       data[9] = (byte) B00000001; break;
@@ -738,6 +747,22 @@ void IRsend::sendHvacMitsubishiFD(
     case VANNE_AUTO_MOVE:   data[9] = (byte) data[9] | B01111000; break;
     default: break;
   }
+
+  // Byte 13 - AREA MODE
+  switch (HVAC_AreaMode)
+  {
+    case AREA_SWING:  data[13] = (byte) B00000000; break;
+    case AREA_LEFT:   data[13] = (byte) B01000000; break;
+    case AREA_AUTO:   data[13] = (byte) B10000000; break;
+    case AREA_RIGHT:  data[13] = (byte) B11000000; break;
+    default: break;
+  }
+
+  // Byte 14 - CLEAN MODE
+  if (HVAC_CLEAN_MODE)  { data[14] = (byte) B00000100;  }
+
+  // Byte 15 - PLASMA
+  if (HVAC_PLASMA)  { data[15] = (byte) B00000100;  }
 
   // Byte 18 - CRC
   data[17] = 0;

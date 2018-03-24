@@ -127,7 +127,8 @@ typedef enum HvacWideVanneMode {
   WIDE_LEFT,
   WIDE_MIDDLE,
   WIDE_RIGHT,
-  WIDE_RIGHT_END
+  WIDE_RIGHT_END,
+  WIDE_SWING
 } HvacWideVanneMode_t;  // HVAC  WIDE VANNE MODE
 
 typedef enum HvacAreaMode {
@@ -201,10 +202,10 @@ class IRsend
       int                       HVAC_SWITCH          // Example false
     );
     void sendHvacToshiba(
-      HvacMode                  HVAC_Mode,           // Example HVAC_HOT  
-      int                       HVAC_Temp,           // Example 21  (°c)
-      HvacFanMode               HVAC_FanMode,        // Example FAN_SPEED_AUTO  
-      int                       OFF                  // Example false
+      HvacMode                HVAC_Mode,           // Example HVAC_HOT
+      int                     HVAC_Temp,           // Example 21  (°c)
+      HvacFanMode             HVAC_FanMode,        // Example FAN_SPEED_AUTO
+      int                     OFF                  // Example false
     );
     
     void sendJVC(unsigned long data, int nbits, int repeat); // *Note instead of sending the REPEAT constant if you want the JVC repeat signal sent, send the original code value and change the repeat argument from 0 to 1. JVC protocol repeats by skipping the header NOT by sending a separate code value like NEC does.
