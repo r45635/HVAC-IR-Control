@@ -127,7 +127,8 @@ typedef enum HvacWideVanneMode {
   WIDE_LEFT,
   WIDE_MIDDLE,
   WIDE_RIGHT,
-  WIDE_RIGHT_END
+  WIDE_RIGHT_END,
+  WIDE_SWING
 } HvacWideVanneMode_t;  // HVAC  WIDE VANNE MODE
 
 typedef enum HvacAreaMode {
@@ -187,6 +188,12 @@ class IRsend
       HvacVanneMode             HVAC_VanneMode,      // Example VANNE_AUTO_MOVE  HvacPanasonicVanneMode
       HvacProfileMode           HVAC_ProfileMode,    // Example QUIET HvacProfileMode
       int                       HVAC_SWITCH          // Example false
+    );
+    void sendHvacToshiba(
+      HvacMode                HVAC_Mode,           // Example HVAC_HOT
+      int                     HVAC_Temp,           // Example 21  (°c)
+      HvacFanMode             HVAC_FanMode,        // Example FAN_SPEED_AUTO
+      int                     OFF                  // Example false
     );
 
     
