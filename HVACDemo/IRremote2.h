@@ -13,7 +13,7 @@
  * LG added by Darryl Smith (based on the JVC protocol)
  *
  * Mitsubishi HVAC protocol added by Vincent Cruvellier.
- *
+ * Mitsubishi HVAC W001CP R61Y23304 protocol added by bt4wang.
  */
 
 #ifndef IRremote_h
@@ -127,7 +127,8 @@ typedef enum HvacWideVanneMode {
   WIDE_LEFT,
   WIDE_MIDDLE,
   WIDE_RIGHT,
-  WIDE_RIGHT_END
+  WIDE_RIGHT_END,
+  WIDE_SWING
 } HvacWideVanneMode_t;  // HVAC  WIDE VANNE MODE
 
 typedef enum HvacAreaMode {
@@ -168,6 +169,18 @@ class IRsend
       HvacVanneMode             HVAC_VanneMode,      // Example VANNE_AUTO_MOVE  HvacMitsubishiVanneMode
       int                       OFF                  // Example false
     );
+    // Add support for W001CP R61Y23304 Remote Controller
+    void sendHvacMitsubishi_W001CP(
+      HvacMode                  HVAC_Mode,           // Example HVAC_HOT.         HvacMitsubishiMode
+                                                     // This type support HVAC_HOT,HVAC_COLD,HVAC_DRY,HVAC_FAN,HVAC_AUTO.
+      int                       HVAC_Temp,           // Example 21  (°c).
+                                                     // This type support 17~28 in HVAC_HOT mode, 19~30 in HVAC_COLD and HVAC_DRY mode.
+      HvacFanMode               HVAC_FanMode,        // Example FAN_SPEED_AUTO.   HvacMitsubishiFanMode
+                                                     // This type support FAN_SPEED_1,FAN_SPEED_2,FAN_SPEED_3,FAN_SPEED_4.
+      HvacVanneMode             HVAC_VanneMode,      // Example VANNE_AUTO_MOVE.  HvacMitsubishiVanneMode
+                                                     // This type support support VANNE_AUTO,VANNE_H1,VANNE_H2,VANNE_H3,VANNE_H4.
+      int                       OFF                  // Example false
+    );
     void sendHvacMitsubishiFD(
       HvacMode                  HVAC_Mode,           // Example HVAC_HOT  HvacMitsubishiMode
       int                       HVAC_Temp,           // Example 21  (°c)
@@ -188,7 +201,12 @@ class IRsend
       HvacProfileMode           HVAC_ProfileMode,    // Example QUIET HvacProfileMode
       int                       HVAC_SWITCH          // Example false
     );
-
+    void sendHvacToshiba(
+      HvacMode                HVAC_Mode,           // Example HVAC_HOT
+      int                     HVAC_Temp,           // Example 21  (°c)
+      HvacFanMode             HVAC_FanMode,        // Example FAN_SPEED_AUTO
+      int                     OFF                  // Example false
+    );
     
     void sendJVC(unsigned long data, int nbits, int repeat); // *Note instead of sending the REPEAT constant if you want the JVC repeat signal sent, send the original code value and change the repeat argument from 0 to 1. JVC protocol repeats by skipping the header NOT by sending a separate code value like NEC does.
     // private:
