@@ -2,7 +2,7 @@
 #HVAC IR Control
 
 ##Introduction
-*HVAC IR Control aims to facilitate control of your HVAC emulating the IR code from an Arduino. The Do It Your Self has no limitation except the time to spent on it. I hope this repository can accelerate your development espcecially if you use Mitsubishi HVAC. Panasonic HVAC support has been added too thanks to another contributor. Should you wants to add another protocol data information releated to new brand or model then feel free to contact us*
+*HVAC IR Control aims to facilitate control of your HVAC emulating the IR code from an Arduino (a python port for the RPI is also available). The Do It Your Self has no limitation except the time to spent on it. I hope this repository can accelerate your development espcecially if you use Mitsubishi HVAC. Panasonic HVAC support has been added too thanks to another contributor. Should you wants to add another protocol data information releated to new brand or model then feel free to contact us*
 
 ##Project background
 I started to use sketch with an Arduino associated to IR emitter and IR Receiver. radpidly i stated that library available do not covers HVAC modules. A way to progress was to use a software named AnalysIR, therefore i ordered a license for this tool. Indeed this tool was perfectly doing the job of identifying the IR trame my IR remote was sending. Nevertheless, even if the data collected was able to identify bits values, the packet of data provided to use with the different existing libraries was a set of mark and space interger values. For an Arduino it's a lot of data only for one command to process in IR. Due to this limitation of memory, i started to think about coding a function using the Hex values of the trame decoded by AnalysisIR instead of having to manage mark & space huge array of data. Without AnalysisIR software, it never have been possible for me to achieve what i did. Thanks Chris ;). 
@@ -41,6 +41,26 @@ void sendHvacMitsubishiFD(
  );
 ```
 Functions confirmed in MSZ-GE and MFZ modules from Mitsubishi.
+
+<table>
+    <tbody>
+        <tr>
+            <td align="center">
+            <a href="https://github.com/Ericmas001" target="_blank">
+            Ericmas001 <br />
+            <img src="https://avatars1.githubusercontent.com/u/11448087?v=3&s=80" alt="Ericmas001" width=50 />
+            </a>
+            </td>
+            <td align="left">
+                <div class="nuget-badge">
+                    <b>A python port has been made to be compatible with Raspberry Pi.</b> <br />
+                    <code>pip install git+https://github.com/Ericmas001/HVAC-IR-Control</code> <br />
+                    Big thanks to <a href="https://github.com/r45635" target="_blank">r45635</a>, <a href="https://github.com/bschwind" target="_blank">bschwind</a>, <a href="https://github.com/r45635" target="_blank">danijelt</a> who made this possible to achieve !
+                </div>
+            </td>
+        </tr>
+    </tbody>
+</table>
 
 ## Panasonic HVAC
 
