@@ -1,12 +1,13 @@
-# HVAC-IR-Control - Python port for RPI3
+# HVAC-IR-Control - Python 3 port for RPI zero
+# Kim Moritz (KimMoritz) - 2020-02-28
+# Forked from:
 # Eric Masse (Ericmas001) - 2017-06-30
 # https://github.com/Ericmas001/HVAC-IR-Control
-# Tested on Mitsubishi Model MSZ-FE12NA
 
 # From original: https://github.com/r45635/HVAC-IR-Control
 # (c)  Vincent Cruvellier - 10th, January 2016 - Fun with ESP8266
 
-import ir_sender
+import hvac_ircontrol.ir_sender
 import pigpio
 from datetime import datetime
 
