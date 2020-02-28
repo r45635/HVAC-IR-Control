@@ -6,7 +6,7 @@
 # From original: https://github.com/r45635/HVAC-IR-Control
 # (c)  Vincent Cruvellier - 10th, January 2016 - Fun with ESP8266
 
-import ir_sender
+import hvac_ircontrol.ir_sender as ir_sender
 import pigpio
 from datetime import datetime
 
